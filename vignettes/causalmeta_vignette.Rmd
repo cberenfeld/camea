@@ -1,0 +1,76 @@
+---
+title: "Causal Meta Analysis"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{causalmeta_vignette}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(causalmeta)
+```
+
+## Description
+
+A package for causal meta-analysis estimation of a binary response and binary treatment. The output is the aggregated estimate and its standard deviation, the package allows for simple and fast computation of different measures such as risk difference, risk ratio, odds ratio and survival ratio.
+
+## How to install
+
+The latest release of the package can be installed through CRAN (soon):
+
+```{r, eval = FALSE}
+install.packages("causalmeta")
+```
+
+The development version can be installed from github
+
+```{r, eval = FALSE}
+devtools::install_github("cberenfeld/meta_revolution/causalmeta_package",subdir = "r-package/causalmeta")
+```
+
+Another installation possibility is to clone the repo, and then within the r-package folder run
+
+```{r, eval = FALSE}
+Rscript build_package.R
+```
+
+# Usage Example
+
+```{r}
+require(causalmeta)
+
+# generate data
+n <- 25
+
+treated_total <- sample.int(500, n)
+control_total <- sample.int(500, n)
+treated_events <- rbinom(n,treated_total,0.5)
+control_events <- rbinom(n,control_total,0.5)
+
+# choose measure
+measure <- "RD"
+
+# apply function
+result <- causalmeta(measure = measure, ai = treated_events, n1i = treated_total,
+                    ci = control_events, n2i = control_total)
+```
+
+# Plot
+
+```{r}
+# apply the same function but print the plot
+result <- causalmeta(measure = measure, ai = treated_events, n1i = treated_total,
+                    ci = control_events, n2i = control_total, plot = TRUE)
+```
+
+# References
+
+Berenfeld, C., Boughdiri, A., Colnet, B., van Amsterdam, W. A. C., Bellet, A., Khellaf, R., Scornet, E., & Josse, J. (2025). Causal Meta-Analysis: Rethinking the Foundations of Evidence-Based Medicine. arXiv:2505.20168.
