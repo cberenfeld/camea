@@ -156,6 +156,7 @@ causalmeta <- function(measure, ai, bi, ci, di, n1i, n2i, slab, data = NULL, wei
 
         if(log.scale){ yi <- log(ratio_i); vi <- vi_log; ci.lb <- yi - ci_log_i; ci.ub <- yi + ci_log_i}
         else if(!log.scale){ yi <- ratio_i; vi <- vi_log*ratio_i^2; ef <- exp(ci_log_i); ci.lb <- yi / ef; ci.ub <- yi * ef}
+          # for nonlinear measures: variance of single study effect computed with delta method from variance of log scale study effect of same measure
 
       }
       else if(measure == "OR"){
