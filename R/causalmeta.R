@@ -311,7 +311,7 @@ causalmeta <- function(measure, ai, bi, ci, di, n1i, n2i, slab, data = NULL, wei
 
   }
 
-  return(list(study_results = results %>% select(study,yi,sei), final_result = result))
+  return(list(study_results = select(results,c(study,yi,sei)), final_result = result))
 
 }
 
