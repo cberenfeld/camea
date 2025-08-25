@@ -145,7 +145,7 @@ causalmeta <- function(measure, ai, bi, ci, di, n1i, n2i, slab, data = NULL, wei
     # if(plot){
       if(measure == "RD"){
         yi <- mu_1_k - mu_0_k
-        vi <- mu_0_k*(1- mu_0_k) / n1i_vals  + mu_1_k*(1 - mu_1_k) / n2i_vals
+        vi <- (mu_0_k*(1- mu_0_k) / n1i_vals) + (mu_1_k*(1 - mu_1_k) / n2i_vals)
         ci.lb <- yi - 1.96*sqrt(vi)
         ci.ub <- yi + 1.96*sqrt(vi)
       }
@@ -156,7 +156,6 @@ causalmeta <- function(measure, ai, bi, ci, di, n1i, n2i, slab, data = NULL, wei
 
         if(log.scale){ yi <- log(ratio_i); vi <- vi_log; ci.lb <- yi - ci_log_i; ci.ub <- yi + ci_log_i}
         else if(!log.scale){ yi <- ratio_i; vi <- vi_log*ratio_i^2; ef <- exp(ci_log_i); ci.lb <- yi / ef; ci.ub <- yi * ef}
-          # for nonlinear measures: variance of single study effect computed with delta method from variance of log scale study effect of same measure
 
       }
       else if(measure == "OR"){
@@ -255,13 +254,16 @@ causalmeta <- function(measure, ai, bi, ci, di, n1i, n2i, slab, data = NULL, wei
                        if(!is.na(final_result)) {
                          theta_k <- (results$mu_1_k * (1 -  results$mu_0_k)) / (results$mu_0_k * (1 -  results$mu_1_k))
                          theta <- sum(results$n.k * theta_k / n_total)
-                         if(log.scale){
-                           xi_k <- results$n.k * ((1 / (results$mu_0_k * (1 - results$mu_0_k) * results$n2i)) + (1 / (results$mu_1_k * (1 - results$mu_1_k) * results$n1i)) )
-                           var <- (sum(results$n.k * xi_k / n_total) + sum(results$n.k * log(theta_k)^2 / n_total) - log(theta)^2) / n_total
-                         } else {
-                           xi_k <- (results$n.k^2 / n_total) * ( ((1 - results$mu_0_k)^3 / (results$n2i * results$mu_0_k * (1 - results$mu_1_k)^4)) + ( results$mu_1_k^3 / (results$n1i * (1 - results$mu_1_k) * results$mu_0_k^4)) )
-                           var <- (sum(results$n.k * xi_k / n_total) + sum(results$n.k * theta_k^2 / n_total) - theta^2) / n_total
-                         }
+                         xi_k <- results$n.k * ((1 / (results$mu_0_k * (1 - results$mu_0_k) * results$n2i)) + (1 / (results$mu_1_k * (1 - results$mu_1_k) * results$n1i)) )
+                         var <- (sum(results$n.k * xi_k / n_total) + sum(results$n.k * log(theta_k)^2 / n_total) - log(theta)^2) / n_total
+                         if(!log.scale){var <- var * final_result^2}
+                         # if(log.scale){
+                         #   xi_k <- results$n.k * ((1 / (results$mu_0_k * (1 - results$mu_0_k) * results$n2i)) + (1 / (results$mu_1_k * (1 - results$mu_1_k) * results$n1i)) )
+                         #   var <- (sum(results$n.k * xi_k / n_total) + sum(results$n.k * log(theta_k)^2 / n_total) - log(theta)^2) / n_total
+                         # } else {
+                         #   xi_k <- (results$n.k^2 / n_total) * ( ((1 - results$mu_0_k)^3 / (results$n2i * results$mu_0_k * (1 - results$mu_1_k)^4)) + ( results$mu_1_k^3 / (results$n1i * (1 - results$mu_1_k) * results$mu_0_k^4)) )
+                         #   var <- (sum(results$n.k * xi_k / n_total) + sum(results$n.k * theta_k^2 / n_total) - theta^2) / n_total
+                         # }
                          var
                        } else NA_real_
                      },
@@ -350,6 +352,12 @@ causalmeta <- function(measure, ai, bi, ci, di, n1i, n2i, slab, data = NULL, wei
     stop("Non-integer inputs: ", paste(non_integer, collapse = ", "), call. = FALSE)
   }
 
+  # Check if positive or null
+  non_positive <- names(vector_inputs)[!vapply(vector_inputs, function(x) all(x>=0), logical(1L))]
+  if (length(non_positive) > 0L) {
+    stop("Negative inputs: ", paste(non_positive, collapse = ", "), call. = FALSE)
+  }
+
   # Check equal length vectors
   lengths <- vapply(vector_inputs, length, integer(1L))
   if (length(unique(lengths)) > 1L) {
@@ -369,14 +377,4 @@ causalmeta <- function(measure, ai, bi, ci, di, n1i, n2i, slab, data = NULL, wei
     return(list(ai_vals = ai, ci_vals = ci, n1i_vals = n1i, n2i_vals = n2i))
   }
 }
-
-
-
-
-
-
-
-
-
-
 
