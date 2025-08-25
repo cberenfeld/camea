@@ -33,7 +33,7 @@ install.packages("causalmeta")
 The development version can be installed from github
 
 ```{r, eval = FALSE}
-devtools::install_github("cberenfeld/causal_meta",subdir = "r-package/causalmeta")
+devtools::install_github("cberenfeld/causal_meta")
 ```
 
 Another installation possibility is to clone the repo, and then within the r-package folder run
