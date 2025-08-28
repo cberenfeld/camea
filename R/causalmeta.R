@@ -21,12 +21,12 @@
 #'
 #' @return A list with the following elements:
 #' \describe{
-#' \item{estimate}{effect size or outcome measure}
-#' \item{se}{standard error of the estimate}
+#' \item{study_results}{list of effect sizes or outcome measures for each study and associated standard errors}
+#' \item{final_result}{aggregated effect size or outcome measure and associated standard error}
 #' }
 #'
 #' @examples
-#' # Example with data frame
+#' ## Example 1: With data frame
 #' data <- data.frame(
 #'   study = paste("Study", 1:5),
 #'   treated_events = c(10, 15, 8, 12, 20),
@@ -39,6 +39,18 @@
 #' result <- causalmeta(measure = "RD", ai = treated_events, n1i = treated_total,
 #'                     ci = control_events, n2i = control_total,
 #'                     data = data, slab = study)
+#'
+#' ## Example 2: With vectors
+#' treated_positives <- c(13, 5, 14, 18, 9)
+#' treated_negatives <- c(80, 63, 72, 130, 100)
+#' control_positives <- c(25, 18, 34, 23, 16)
+#' control_negatives <- c(125, 98, 165, 117, 85)
+#'
+#'
+#' # Risk ratio
+#' result <- causalmeta(measure = "RR", ai = treated_positives, bi = treated_negatives,
+#'                     ci = control_positives, di = control_negatives)
+#'
 #'
 #'
 #' @references
@@ -58,6 +70,8 @@
 causalmeta <- function(measure, ai, bi, ci, di, n1i, n2i, slab, data = NULL, weights = NULL, plot = FALSE, log.scale = FALSE, ...){
 
   # Input validation on required parameters (measure, ai, ci)
+
+  if(missing(measure)){stop("Input 'measure' is required", call. = FALSE)}
 
   if(!is.element(measure,c("RD","RR","OR","SR"))){stop("Unsupported measure:", measure, call. = FALSE)}
 
@@ -130,36 +144,38 @@ causalmeta <- function(measure, ai, bi, ci, di, n1i, n2i, slab, data = NULL, wei
 
     proba_k <- if (is.null(weights)) (n1i_vals + n2i_vals) / n_total else weights / sum(weights)
 
-    if(plot){
+    # if(plot){
       if(measure == "RD"){
         yi <- mu_1_k - mu_0_k
-        vi <- mu_0_k*(1- mu_0_k) / n1i_vals  + mu_1_k*(1 - mu_1_k) / n2i_vals
+        vi <- (mu_0_k*(1- mu_0_k) / n1i_vals) + (mu_1_k*(1 - mu_1_k) / n2i_vals)
         ci.lb <- yi - 1.96*sqrt(vi)
         ci.ub <- yi + 1.96*sqrt(vi)
       }
       else if(measure == "RR"){
         ratio_i <- mu_1_k / mu_0_k
-        ci_log_i <- 1.96 * sqrt( (n1i_vals - ai_vals) / (n1i_vals * ai_vals) + (n2i_vals - ci_vals) / (n2i_vals * ci_vals) )
+        vi_log <- (n1i_vals - ai_vals) / (n1i_vals * ai_vals) + (n2i_vals - ci_vals) / (n2i_vals * ci_vals)
+        ci_log_i <- 1.96 * sqrt(vi_log)
 
-        if(log.scale){ yi <- log(ratio_i); ci.lb <- yi - ci_log_i; ci.ub <- yi + ci_log_i}
-        else if(!log.scale){ yi <- ratio_i; ef <- exp(ci_log_i); ci.lb <- yi / ef; ci.ub <- yi * ef}
+        if(log.scale){ yi <- log(ratio_i); vi <- vi_log; ci.lb <- yi - ci_log_i; ci.ub <- yi + ci_log_i}
+        else if(!log.scale){ yi <- ratio_i; vi <- vi_log*ratio_i^2; ef <- exp(ci_log_i); ci.lb <- yi / ef; ci.ub <- yi * ef}
 
       }
       else if(measure == "OR"){
         ratio_i <- (ai_vals * (n2i_vals - ci_vals)) / (ci_vals * (n1i_vals - ai_vals))
-        ci_log_i <- 1.96 * sqrt((1/ai_vals) + (1/(n1i_vals - ai_vals)) + (1/ci_vals) + (1/(n2i_vals - ci_vals)))
+        vi_log <- (1/ai_vals) + (1/(n1i_vals - ai_vals)) + (1/ci_vals) + (1/(n2i_vals - ci_vals))
+        ci_log_i <- 1.96 * sqrt(vi_log)
 
-        if(log.scale){ yi <- log(ratio_i); ci.lb <- yi - ci_log_i; ci.ub <- yi + ci_log_i}
-        else if(!log.scale){ yi <- ratio_i; ef <- exp(ci_log_i); ci.lb <- yi / ef; ci.ub <- yi * ef}
+        if(log.scale){ yi <- log(ratio_i); vi <- vi_log; ci.lb <- yi - ci_log_i; ci.ub <- yi + ci_log_i}
+        else if(!log.scale){ yi <- ratio_i; vi <- vi_log*ratio_i^2; ef <- exp(ci_log_i); ci.lb <- yi / ef; ci.ub <- yi * ef}
 
       }
       else if(measure == "SR"){
-
         ratio_i <- (1 - mu_1_k) / (1 - mu_0_k)
-        ci_log_i <- 1.96 * sqrt( ai_vals / (n1i_vals * (n1i_vals - ai_vals)) + (ci_vals / (n2i_vals * (n2i_vals - ci_vals))) )
+        vi_log <- (ai_vals / (n1i_vals * (n1i_vals - ai_vals))) + (ci_vals / (n2i_vals * (n2i_vals - ci_vals)))
+        ci_log_i <- 1.96 * sqrt(vi_log)
 
-        if(log.scale){ yi <- log(ratio_i); ci.lb <- yi - ci_log_i; ci.ub <- yi + ci_log_i}
-        else if(!log.scale){ yi <- ratio_i; ef <- exp(ci_log_i); ci.lb <- yi / ef; ci.ub <- yi * ef}
+        if(log.scale){ yi <- log(ratio_i); vi <- vi_log; ci.lb <- yi - ci_log_i; ci.ub <- yi + ci_log_i}
+        else if(!log.scale){ yi <- ratio_i; vi <- vi_log*ratio_i^2; ef <- exp(ci_log_i); ci.lb <- yi / ef; ci.ub <- yi * ef}
 
       }
 
@@ -168,6 +184,7 @@ causalmeta <- function(measure, ai, bi, ci, di, n1i, n2i, slab, data = NULL, wei
         mu_0_k = mu_0_k,
         mu_1_k = mu_1_k,
         yi = yi,
+        sei = sqrt(vi),
         ci.lb = ci.lb,
         ci.ub = ci.ub,
         n1i = n1i_vals,
@@ -175,19 +192,22 @@ causalmeta <- function(measure, ai, bi, ci, di, n1i, n2i, slab, data = NULL, wei
         n.k = n1i_vals + n2i_vals
       )
 
-    }
-
-    # Store computed statistics in a tibble (row)
-    else{tibble::tibble(
-      proba_k = proba_k,
-      mu_0_k = mu_0_k,
-      mu_1_k = mu_1_k,
-      n1i = n1i_vals,
-      n2i = n2i_vals,
-      n.k = n1i_vals + n2i_vals
-    )
-    }
+    # }
+    #
+    # # Store computed statistics in a tibble (row)
+    # else{tibble::tibble(
+    #   proba_k = proba_k,
+    #   mu_0_k = mu_0_k,
+    #   mu_1_k = mu_1_k,
+    #   n1i = n1i_vals,
+    #   n2i = n2i_vals,
+    #   n.k = n1i_vals + n2i_vals
+    # )
+    # }
   })
+
+  if(!missing(slab)) {results$study <- slab_vals}
+  else {results$study <- paste0("Study ", seq_along(results$yi))}
 
   # Number of studies with non-zero sample size
   n_study <- nrow(results)
@@ -236,13 +256,16 @@ causalmeta <- function(measure, ai, bi, ci, di, n1i, n2i, slab, data = NULL, wei
                        if(!is.na(final_result)) {
                          theta_k <- (results$mu_1_k * (1 -  results$mu_0_k)) / (results$mu_0_k * (1 -  results$mu_1_k))
                          theta <- sum(results$n.k * theta_k / n_total)
-                         if(log.scale){
-                           xi_k <- results$n.k * ((1 / (results$mu_0_k * (1 - results$mu_0_k) * results$n2i)) + (1 / (results$mu_1_k * (1 - results$mu_1_k) * results$n1i)) )
-                           var <- (sum(results$n.k * xi_k / n_total) + sum(results$n.k * log(theta_k)^2 / n_total) - log(theta)^2) / n_total
-                         } else {
-                           xi_k <- (results$n.k^2 / n_total) * ( ((1 - results$mu_0_k)^3 / (results$n2i * results$mu_0_k * (1 - results$mu_1_k)^4)) + ( results$mu_1_k^3 / (results$n1i * (1 - results$mu_1_k) * results$mu_0_k^4)) )
-                           var <- (sum(results$n.k * xi_k / n_total) + sum(results$n.k * theta_k^2 / n_total) - theta^2) / n_total
-                         }
+                         xi_k <- results$n.k * (((2*results$mu_0_k - 1)^2 / (results$mu_0_k * (1 - results$mu_0_k) * results$n2i)) + ((2*results$mu_1_k - 1)^2 / (results$mu_1_k * (1 - results$mu_1_k) * results$n1i)) )
+                         var <- (sum(results$n.k * xi_k / n_total) + sum(results$n.k * log(theta_k)^2 / n_total) - log(theta)^2) / n_total
+                         if(!log.scale){var <- var * final_result^2}
+                         # if(log.scale){
+                         #   xi_k <- results$n.k * ((1 / (results$mu_0_k * (1 - results$mu_0_k) * results$n2i)) + (1 / (results$mu_1_k * (1 - results$mu_1_k) * results$n1i)) )
+                         #   var <- (sum(results$n.k * xi_k / n_total) + sum(results$n.k * log(theta_k)^2 / n_total) - log(theta)^2) / n_total
+                         # } else {
+                         #   xi_k <- (results$n.k^2 / n_total) * ( ((1 - results$mu_0_k)^3 / (results$n2i * results$mu_0_k * (1 - results$mu_1_k)^4)) + ( results$mu_1_k^3 / (results$n1i * (1 - results$mu_1_k) * results$mu_0_k^4)) )
+                         #   var <- (sum(results$n.k * xi_k / n_total) + sum(results$n.k * theta_k^2 / n_total) - theta^2) / n_total
+                         # }
                          var
                        } else NA_real_
                      },
@@ -284,15 +307,15 @@ causalmeta <- function(measure, ai, bi, ci, di, n1i, n2i, slab, data = NULL, wei
     par(mar=c(2,2,2,2))
     if(!missing(slab)){metafor::forest(x = results$yi, ci.lb = results$ci.lb, ci.ub = results$ci.ub, header = c("Study",paste(measure_name,"[95% CI]")), top=3,ylim=c(-3, nrow(results)+3), slab = slab_vals, refline = refline)}
     else {metafor::forest(x = results$yi, ci.lb = results$ci.lb, ci.ub = results$ci.ub, header = c("Study",paste(measure_name,"[95% CI]")), top=3,ylim=c(-3, nrow(results)+3), refline = refline)}
-    metafor::addpoly(res, row = -2, mlab="Causal meta-analysis")
+    metafor::addpoly(res, row = -1, mlab="Causal meta-analysis")
     if(measure!="SR"){
-    if(is.element(measure,c("OR","RR")) && log.scale == FALSE){metafor::addpoly(x = res_random_effects_beta, ci.lb = res_random_effects_ci.lb, ci.ub = res_random_effects_ci.ub, row = -3, mlab="Random-effects model")}
-    else {metafor::addpoly(res_random_effects, row = -3, mlab="Random-effects model")}
+    if(is.element(measure,c("OR","RR")) && log.scale == FALSE){metafor::addpoly(x = res_random_effects_beta, ci.lb = res_random_effects_ci.lb, ci.ub = res_random_effects_ci.ub, row = -2, mlab="Random-effects model")}
+    else {metafor::addpoly(res_random_effects, row = -2, mlab="Random-effects model")}
     }
 
   }
 
-  result
+  return(list(study_results = select(results,c(study,yi,sei)), final_result = result))
 
 }
 
@@ -325,6 +348,18 @@ causalmeta <- function(measure, ai, bi, ci, di, n1i, n2i, slab, data = NULL, wei
     stop("Non-numeric inputs: ", paste(non_numeric, collapse = ", "), call. = FALSE)
   }
 
+  # Check if integer
+  non_integer <- names(vector_inputs)[!vapply(vector_inputs, function(x) all(x%%1==0), logical(1L))]
+  if (length(non_integer) > 0L) {
+    stop("Non-integer inputs: ", paste(non_integer, collapse = ", "), call. = FALSE)
+  }
+
+  # Check if positive or null
+  non_positive <- names(vector_inputs)[!vapply(vector_inputs, function(x) all(x>=0), logical(1L))]
+  if (length(non_positive) > 0L) {
+    stop("Negative inputs: ", paste(non_positive, collapse = ", "), call. = FALSE)
+  }
+
   # Check equal length vectors
   lengths <- vapply(vector_inputs, length, integer(1L))
   if (length(unique(lengths)) > 1L) {
@@ -344,14 +379,4 @@ causalmeta <- function(measure, ai, bi, ci, di, n1i, n2i, slab, data = NULL, wei
     return(list(ai_vals = ai, ci_vals = ci, n1i_vals = n1i, n2i_vals = n2i))
   }
 }
-
-
-
-
-
-
-
-
-
-
 

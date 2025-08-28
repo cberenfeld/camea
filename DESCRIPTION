@@ -10,7 +10,7 @@ Maintainer: Charif El Gataa <charif.el-gataa@inria.fr>
 Description: Performs causal meta-analysis for binary tratment and binary outcomes.
 License: MIT + file LICENSE
 Encoding: UTF-8
-LazyData: true
+LazyData: false
 RoxygenNote: 7.2.3
 Imports:
     purrr,
