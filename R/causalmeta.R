@@ -71,6 +71,8 @@ causalmeta <- function(measure, ai, bi, ci, di, n1i, n2i, slab, data = NULL, wei
 
   # Input validation on required parameters (measure, ai, ci)
 
+  if(missing(measure)){stop("Input 'measure' is required", call. = FALSE)}
+
   if(!is.element(measure,c("RD","RR","OR","SR"))){stop("Unsupported measure:", measure, call. = FALSE)}
 
   if(missing(ai)){stop("Input 'ai' is required", call. = FALSE)}
@@ -254,7 +256,7 @@ causalmeta <- function(measure, ai, bi, ci, di, n1i, n2i, slab, data = NULL, wei
                        if(!is.na(final_result)) {
                          theta_k <- (results$mu_1_k * (1 -  results$mu_0_k)) / (results$mu_0_k * (1 -  results$mu_1_k))
                          theta <- sum(results$n.k * theta_k / n_total)
-                         xi_k <- results$n.k * ((1 / (results$mu_0_k * (1 - results$mu_0_k) * results$n2i)) + (1 / (results$mu_1_k * (1 - results$mu_1_k) * results$n1i)) )
+                         xi_k <- results$n.k * (((2*results$mu_0_k - 1)^2 / (results$mu_0_k * (1 - results$mu_0_k) * results$n2i)) + ((2*results$mu_1_k - 1)^2 / (results$mu_1_k * (1 - results$mu_1_k) * results$n1i)) )
                          var <- (sum(results$n.k * xi_k / n_total) + sum(results$n.k * log(theta_k)^2 / n_total) - log(theta)^2) / n_total
                          if(!log.scale){var <- var * final_result^2}
                          # if(log.scale){
