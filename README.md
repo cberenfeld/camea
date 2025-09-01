@@ -86,34 +86,6 @@ result <- causalmeta(measure = measure, ai = treated_events, n1i = treated_total
                     ci = control_events, n2i = control_total, plot = TRUE)
 ```
 
-## Computation of confidence intervals 
-
-The estimates of the variance of the Risk Difference and the Risk Ratio can be found in the paper by Berenfeld et al. (2025).
-
-The variance of the Odds Ratio of its log-transformed value can be estimated using the following approximation. Let $\hat{\psi}_a (k) = n_{a1}(k) / n_a(k)$ be the natural estimator of $\mathbb{E}[Y(a)|H=k]$,
-
-\begin{equation*}
-
-\widehat{\mathbb{V}ar (\log(\hat{\theta}_{OR}))} = \sum_{k=1}^K \frac{n_k}{n} \xi_k -\log(\hat{\theta}_{OR})^2
-
-\end{equation*}
-
-where
-
-\begin{equation*}
-
-\xi_k = \frac{n_k}{n_0(k)} \frac{(2\hat{\psi}_0(k) - 1)^2}{\hat{\psi}_0(k)(1-\hat{\psi}_0(k))} + \frac{n_k}{n_1(k)} \frac{(2\hat{\psi}_1(k) - 1)^2}{\hat{\psi}_1(k)(1-\hat{\psi}_1(k))} + \log(\hat{\theta}_{OR}(k))^2
-
-\end{equation*}
-
-An estimator of the variance of the Odds Ratio itself is derived from the Delta Method:
-
-\begin{equation*}
-
-\widehat{\mathbb{V}ar (\hat{\theta}_{OR})} = \hat{\theta}_{OR}^2 \widehat{\mathbb{V}ar (\log(\hat{\theta}_{OR}))}
-
-\end{equation*}
-
 ## Use of metafor package
 
 If the measure used is Risk Difference, Risk Ratio or Odds Ratio, the forest plot, along with the causal meta-analysis estimate, will also have the estimate made with the random-effects model. The latter is estimated via the package "metafor" by Viechtbauer W. . The package "metafor" provides only estimates of the Risk Ratio and Odds Ratio in (natural) logarithmic scale, for the natural scale our package takes the exponential of the estimates and of the error term (to compute the confidence intervals).
