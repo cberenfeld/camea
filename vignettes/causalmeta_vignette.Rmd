@@ -106,9 +106,11 @@ result <- causalmeta(measure = measure, ai = treated_events, n1i = treated_total
                     ci = control_events, n2i = control_total, plot = TRUE)
 ```
 
-## Confidence intervals of Odds Ratio
+## Computation of confidence intervals 
 
-The estimates of the variance of the Risk Difference and the Risk Ratio can be found in the paper by Berenfeld et al. (2025). Given $\hat{\psi}_a (k) = n_{a1}(k) / n_a(k)$ the natural estimator of $ \mathbb{E}[Y(a)|H=k] $, the variance of the Odds Ratio in log-scale can be estimated by
+The estimates of the variance of the Risk Difference and the Risk Ratio can be found in the paper by Berenfeld et al. (2025).
+
+The variance of the Odds Ratio of its log-transformed value can be estimated using the following approximation. Let $\hat{\psi}_a (k) = n_{a1}(k) / n_a(k)$ be the natural estimator of $\mathbb{E}[Y(a)|H=k]$,
 
 \begin{equation*}
 
@@ -124,7 +126,7 @@ where
 
 \end{equation*}
 
-An estimator of the variance of the Odds Ratio is the following:
+An estimator of the variance of the Odds Ratio itself is derived from the Delta Method:
 
 \begin{equation*}
 
