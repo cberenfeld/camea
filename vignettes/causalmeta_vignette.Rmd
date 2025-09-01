@@ -58,10 +58,10 @@ require(causalmeta)
 # Example 1: With vectors of total numbers and events in treated and control
 
 # Generate data
-n <- 5
+n <- 10
 
-treated_total <- sample.int(500, n)
-control_total <- sample.int(500, n)
+treated_total <- sample.int(1000, n)
+control_total <- sample.int(1000, n)
 treated_events <- rbinom(n,treated_total,0.5)
 control_events <- rbinom(n,control_total,0.5)
 
@@ -75,10 +75,10 @@ result <- causalmeta(measure = measure, ai = treated_events, n1i = treated_total
 # Example 2: With contingency tables entries in data.frame format
 
 # Generate data
-n <- 5
+n <- 10
 
-treated_total <- sample.int(500, n)
-control_total <- sample.int(500, n)
+treated_total <- sample.int(1000, n)
+control_total <- sample.int(1000, n)
 treated_events <- rbinom(n,treated_total,0.5)
 control_events <- rbinom(n,control_total,0.5)
 treated_negatives <- treated_total - treated_events
