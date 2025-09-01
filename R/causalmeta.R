@@ -305,12 +305,41 @@ causalmeta <- function(measure, ai, bi, ci, di, n1i, n2i, slab, data = NULL, wei
     refline <- if(is.element(measure,c("RD")) || log.scale == TRUE) 0 else 1
 
     par(mar=c(2,2,2,2))
-    if(!missing(slab)){metafor::forest(x = results$yi, ci.lb = results$ci.lb, ci.ub = results$ci.ub, header = c("Study",paste(measure_name,"[95% CI]")), top=3,ylim=c(-3, nrow(results)+3), slab = slab_vals, refline = refline)}
-    else {metafor::forest(x = results$yi, ci.lb = results$ci.lb, ci.ub = results$ci.ub, header = c("Study",paste(measure_name,"[95% CI]")), top=3,ylim=c(-3, nrow(results)+3), refline = refline)}
-    metafor::addpoly(res, row = -1, mlab="Causal meta-analysis")
+    if(!missing(slab)){
+      metafor::forest(x = results$yi,
+                      ci.lb = results$ci.lb,
+                      ci.ub = results$ci.ub,
+                      header = c("Study",paste(measure_name,"[95% CI]")),
+                      top=2,
+                      ylim=c(-2, n_study+2),
+                      refline = refline,
+                      cex = 0.8,
+                      slab = slab_vals)
+      }
+    else {
+      metafor::forest(x = results$yi,
+                      ci.lb = results$ci.lb,
+                      ci.ub = results$ci.ub,
+                      header = c("Study",paste(measure_name,"[95% CI]")),
+                      top=2,
+                      ylim=c(-2, n_study+2),
+                      refline = refline,
+                      cex = 0.8)
+    }
+
+    metafor::addpoly(res, row = 0, mlab="Causal meta-analysis", cex = 0.8)
+
     if(measure!="SR"){
-    if(is.element(measure,c("OR","RR")) && log.scale == FALSE){metafor::addpoly(x = res_random_effects_beta, ci.lb = res_random_effects_ci.lb, ci.ub = res_random_effects_ci.ub, row = -2, mlab="Random-effects model")}
-    else {metafor::addpoly(res_random_effects, row = -2, mlab="Random-effects model")}
+      if(is.element(measure,c("OR","RR")) && log.scale == FALSE){
+        metafor::addpoly(x = res_random_effects_beta,
+                         ci.lb = res_random_effects_ci.lb,
+                         ci.ub = res_random_effects_ci.ub,
+                         row = -1,
+                         mlab="Random-effects model",
+                         cex = 0.8)
+        }
+    else {
+      metafor::addpoly(res_random_effects, row = -1, mlab="Random-effects model", cex = 0.8)}
     }
 
   }
