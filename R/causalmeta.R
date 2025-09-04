@@ -63,6 +63,7 @@
 #' @importFrom purrr pmap_dfr
 #' @importFrom metafor rma escalc forest addpoly
 #' @importFrom tibble tibble
+#' @importFrom dplyr select
 #'
 #' @export
 #'
