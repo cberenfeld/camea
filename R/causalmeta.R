@@ -255,18 +255,25 @@ causalmeta <- function(measure, ai, bi, ci, di, n1i, n2i, slab, data = NULL, wei
                      },
                      "OR" = {
                        if(!is.na(final_result)) {
-                         theta_k <- (results$mu_1_k * (1 -  results$mu_0_k)) / (results$mu_0_k * (1 -  results$mu_1_k))
-                         theta <- sum(results$n.k * theta_k / n_total)
-                         xi_k <- results$n.k * (((2*results$mu_0_k - 1)^2 / (results$mu_0_k * (1 - results$mu_0_k) * results$n2i)) + ((2*results$mu_1_k - 1)^2 / (results$mu_1_k * (1 - results$mu_1_k) * results$n1i)) )
-                         var <- (sum(results$n.k * xi_k / n_total) + sum(results$n.k * log(theta_k)^2 / n_total) - log(theta)^2) / n_total
-                         if(!log.scale){var <- var * final_result^2}
-                         # if(log.scale){
-                         #   xi_k <- results$n.k * ((1 / (results$mu_0_k * (1 - results$mu_0_k) * results$n2i)) + (1 / (results$mu_1_k * (1 - results$mu_1_k) * results$n1i)) )
-                         #   var <- (sum(results$n.k * xi_k / n_total) + sum(results$n.k * log(theta_k)^2 / n_total) - log(theta)^2) / n_total
-                         # } else {
-                         #   xi_k <- (results$n.k^2 / n_total) * ( ((1 - results$mu_0_k)^3 / (results$n2i * results$mu_0_k * (1 - results$mu_1_k)^4)) + ( results$mu_1_k^3 / (results$n1i * (1 - results$mu_1_k) * results$mu_0_k^4)) )
-                         #   var <- (sum(results$n.k * xi_k / n_total) + sum(results$n.k * theta_k^2 / n_total) - theta^2) / n_total
-                         # }
+
+                         e_k <- results$n1i / results$n.k # propensity scores
+
+                         sigma2_0 <- sum(results$n.k * results$mu_0_k^2 / n_total) - sum(results$n.k * results$mu_0_k / n_total)^2 + sum((results$n.k * results$mu_0_k * (1 - results$mu_0_k)) / ((1 - e_k) * n_total))
+
+                         sigma2_1 <- sum(results$n.k * results$mu_1_k^2 / n_total) - sum(results$n.k * results$mu_1_k / n_total)^2 + sum((results$n.k * results$mu_1_k * (1 - results$mu_1_k)) / (e_k * n_total))
+
+                         #if(!log.scale){
+                           d_psi_0 <- (- EY1) / ((1 - EY1) * EY0^2)
+                           d_psi_1 <- (1 - EY0) / ((1 - EY1)^2 * EY0)
+
+                           var <- (sigma2_0 * d_psi_0^2 + sigma2_1 * d_psi_1^2) / n_total
+                         #}
+                         if(log.scale){
+                           #d_psi_0 <- (1 / (1 - EY0)) - (1 / EY0)
+                           #d_psi_1 <- (1 / EY1) - (1 / (1 - EY1))
+
+                           var <- var / final_result^2 #delta method, old method: (sigma2_0 * d_psi_0^2 + sigma2_1 * d_psi_1^2) / n_total + other comments
+                         }
                          var
                        } else NA_real_
                      },
@@ -274,7 +281,7 @@ causalmeta <- function(measure, ai, bi, ci, di, n1i, n2i, slab, data = NULL, wei
                        if (!is.na(final_result)) {
                         zeta1_sq <- sum((results$n.k^2) / (results$n1i * n_total) * (1 - results$mu_1_k)) / (EY1^2)
                         zeta0_sq <- sum((results$n.k^2) / (results$n2i * n_total) * (1 - results$mu_0_k)) / (EY0^2)
-                        var <- (zeta1_sq + zeta0_sq) / n_total
+                        var <- (zeta1_sq + zeta0_sq) # / n_total ?
                         if(!log.scale){var <- var*final_result^2} # delta method on log(SR): divide by ratio^2 variance of SR
                         var
                        } else NA_real_
@@ -345,7 +352,7 @@ causalmeta <- function(measure, ai, bi, ci, di, n1i, n2i, slab, data = NULL, wei
 
   }
 
-  return(list(study_results = select(results,c(study,yi,sei)), final_result = result))
+  return(list(study_results = dplyr::select(results,c(study,yi,sei)), final_result = result))
 
 }
 
