@@ -139,7 +139,7 @@ For a detailed proof, see Appendix A.1 .
 
 ## Use of metafor package
 
-If the measure used is Risk Difference, Risk Ratio or Odds Ratio, the forest plot, along with the causal meta-analysis estimate, will also have the estimate made with the random-effects model. The latter is estimated via the package "metafor" by Viechtbauer W. . The package "metafor" provides only estimates of the Risk Ratio and Odds Ratio in (natural) logarithmic scale, for the natural scale our package takes the exponential of the estimates and of the error term (to compute the confidence intervals).
+If the measure used is Risk Difference, Risk Ratio or Odds Ratio, the forest plot, along with the causal meta-analysis estimate, will also have the estimate made with the random-effects model. The latter is estimated via the package "metafor" by W. Viechtbauer. The package "metafor" provides only estimates of the Risk Ratio and Odds Ratio in (natural) logarithmic scale, for the natural scale our package takes the exponential of the estimates and of the error term (to compute the confidence intervals).
 
 ## References
 
