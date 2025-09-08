@@ -1,6 +1,6 @@
 ## Description
 
-A package for causal meta-analysis estimation of a binary response and binary treatment. The output is the aggregated estimate and its standard deviation, the package allows for simple and fast computation of different measures such as risk difference, risk ratio, odds ratio and survival ratio.
+A package for causal meta-analysis estimation of a binary response and binary treatment using aggregated data, based on Berenfeld et al. (https://arxiv.org/abs/2505.20168). The output is the aggregated estimate and its standard deviation, the package allows for simple and fast computation of different measures such as Risk Difference (RD), Risk Ratio (RR), Odds Ratio (OR) and Survival Ratio (SR).
 
 The package consists of a the function "causalmeta". This function can take the measures Risk Difference, Risk Ratio and log-Risk Ratio, Odds Ratio and log-Odds Ratio, Survival Ratio and log-Survival Ratio.
 
@@ -8,7 +8,11 @@ The data can be input in the following formats: vectors, data.frame, matrix or s
 
 The output of the function is a list of two elements: the first element is a dataframe that has, for each study, its related estimate and standard error; the second element of the list is the aggregated causal-meta analysis estimate and its standard error.
 
-If "plot = TRUE" the function "causalmeta" prints a forestplot that displays the estimate of interest for each study, the aggregated causal-meta estimate and the random-effects model estimate. All estimates are shown with their associated 95%-level CI.
+If `plot = TRUE` the function "causalmeta" prints a forestplot that displays the estimate of interest for each study and the aggregated estimate(s). All estimates are shown with their associated 95%-level CI.
+
+If `random.effects = TRUE`, the output and plot will include both the causal meta-analysis estimate and the random-effects meta-analysis estimate.
+
+If `log.scale = TRUE`, the meta-analysis will be performed on the logarithmic transformation of the chosen measure.
 
 ## How to install
 
@@ -88,7 +92,11 @@ result <- causalmeta(measure = measure, ai = treated_events, n1i = treated_total
 
 ## Use of metafor package
 
-If the measure used is Risk Difference, Risk Ratio or Odds Ratio, the forest plot, along with the causal meta-analysis estimate, will also have the estimate made with the random-effects model. The latter is estimated via the package "metafor" by W. Viechtbauer . The package "metafor" provides only estimates of the Risk Ratio and Odds Ratio in (natural) logarithmic scale, for the natural scale our package takes the exponential of the estimates and of the error term (to compute the confidence intervals).
+If the selected effect measure is Risk Difference (RD), Risk Ratio (RR) or Odds Ratio (OR) and the option `random.effects = TRUE` is set, the output and the forest plot will display two summary estimates: the primary causal meta-analysis estimate and the conventional random-effects estimate.
+
+The random-effects estimate is calculated via the package `metafor` by W. Viechtbauer (2010), which is a well known tool for conducting meta-analysis on R. 
+
+It is important to notice that the package `metafor` only provides estimates of the Risk Ratio and Odds Ratio on the logarithmic scale. Our package automatically converts these log-scale estimates back to the natural scale by applying the exponential function to both the point estimate and the bounds of the confidence interval.
 
 ## References
 
