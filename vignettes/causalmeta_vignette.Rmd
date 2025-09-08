@@ -20,7 +20,7 @@ library(causalmeta)
 
 ## Description
 
-A package for causal meta-analysis estimation of a binary response and binary treatment. The output is the aggregated estimate and its standard deviation, the package allows for simple and fast computation of different measures such as risk difference, risk ratio, odds ratio and survival ratio.
+A package for causal meta-analysis estimation of a binary response and binary treatment using aggregated data, based on Berenfeld et al. (https://arxiv.org/abs/2505.20168). The output is the aggregated estimate and its standard deviation, the package allows for simple and fast computation of different measures such as Risk Difference (RD), Risk Ratio (RR), Odds Ratio (OR) and Survival Ratio (SR).
 
 The package consists of a the function "causalmeta". This function can take the measures Risk Difference, Risk Ratio and log-Risk Ratio, Odds Ratio and log-Odds Ratio, Survival Ratio and log-Survival Ratio.
 
@@ -28,7 +28,11 @@ The data can be input in the following formats: vectors, data.frame, matrix or s
 
 The output of the function is a list of two elements: the first element is a dataframe that has, for each study, its related estimate and standard error; the second element of the list is the aggregated causal-meta analysis estimate and its standard error.
 
-If "plot = TRUE" the function "causalmeta" prints a forestplot that displays the estimate of interest for each study, the aggregated causal-meta estimate and the random-effects model estimate. All estimates are shown with their associated 95%-level CI.
+If `plot = TRUE` the function "causalmeta" prints a forestplot that displays the estimate of interest for each study and the aggregated estimate(s). All estimates are shown with their associated 95%-level CI.
+
+If `random.effects = TRUE`, the output and plot will include both the causal meta-analysis estimate and the random-effects meta-analysis estimate.
+
+If `log.scale = TRUE`, the meta-analysis will be performed on the logarithmic transformation of the chosen measure.
 
 ## How to install
 
@@ -98,7 +102,7 @@ result <- causalmeta(measure = measure, ai = treated_events, bi = treated_negati
 
 ## Plot
 
-If "plot = TRUE" it is possible to print the forestplot of the meta-analysis.
+If `plot = TRUE` it is possible to print the forestplot of the meta-analysis.
 
 ```{r my-forest-plot, fig.width=9, fig.height=6, out.width='100%'}
 # apply the same function but print the plot
@@ -106,49 +110,85 @@ result <- causalmeta(measure = measure, ai = treated_events, n1i = treated_total
                     ci = control_events, n2i = control_total, plot = TRUE)
 ```
 
-## Computation of confidence intervals 
+## Computation of confidence intervals
 
-The estimates of the variance of the Risk Difference and the Risk Ratio can be found in the paper by Berenfeld et al. (2025).
-
-The variance of the Odds Ratio of its log-transformed value can be estimated using the following approximation. Let $\hat{\psi}_a (k) = n_{a1}(k) / n_a(k)$ be the natural estimator of $\mathbb{E}[Y(a)|H=k]$,
+Let $\hat{\psi}_a (k) = n_{a1}(k) / n_a(k)$ be the natural estimator of $\psi_a (k) = \mathbb{E}[Y(a)|H=k]$ with $a \in \{0,1\}$. Let $\hat{\psi}_a = \sum_{k=1}^K \psi_a(k)$ the estimator of $\psi_a = \mathbb{E}[Y(a)]$ where $\pi_k = \mathbb{P}(H = k)$. The estimator is asymptotically normal, converging to the following distribution:
 
 \begin{equation*}
 
-\widehat{\mathbb{V}ar (\log(\hat{\theta}_{OR}))} = \sum_{k=1}^K \frac{n_k}{n} \xi_k -\log(\hat{\theta}_{OR})^2
+\sqrt{n} \: ((\hat{\psi}_1,\hat{\psi}_0) - (\psi_1,\psi_0)) \xrightarrow{\mathcal{L}} \mathcal{N}\biggr{(}0, \begin{bmatrix} 0 & \sigma^2_1 \\ \sigma^2_0 & 0 \end{bmatrix} \biggr{)}
 
 \end{equation*}
 
-where
+where the asymptotic variances are given by:
 
 \begin{equation*}
 
-\xi_k = \frac{n_k}{n_0(k)} \frac{(2\hat{\psi}_0(k) - 1)^2}{\hat{\psi}_0(k)(1-\hat{\psi}_0(k))} + \frac{n_k}{n_1(k)} \frac{(2\hat{\psi}_1(k) - 1)^2}{\hat{\psi}_1(k)(1-\hat{\psi}_1(k))} + \log(\hat{\theta}_{OR}(k))^2
+\sigma^2_a = \sum_{k=1}^K \pi_k \frac{\psi_a (k) (1 - \psi_a (k))}{e^a(k) (1 - e(k))^{1-a}} + \sum_{k=1}^K \pi_k \psi_a(k)^2 - \psi_a^2
 
 \end{equation*}
 
-An estimator of the variance of the Odds Ratio itself is derived from the Delta Method:
+with $e(k) = \mathbb{P}(A = 1 | H = k)$.
+
+Then, by applying the delta method, we find that for every first-order continuously differentiable contrast $\phi \: : \: (\psi_1,\psi_0) \mapsto \phi(\psi_1,\psi_0)$ we have:
 
 \begin{equation*}
 
-\widehat{\mathbb{V}ar (\hat{\theta}_{OR})} = \hat{\theta}_{OR}^2 \widehat{\mathbb{V}ar (\log(\hat{\theta}_{OR}))}
+\sqrt{n} \: (\phi(\hat{\psi}_1,\hat{\psi}_0) - \phi(\psi_1,\psi_0)) \xrightarrow{\mathcal{L}} \mathcal{N} ( 0, \eta^2 )
 
 \end{equation*}
 
-For a detailed proof, see Appendix A.1 .
+where $\eta^2 = \sigma_1^2 \: \partial_1 \phi(\psi_1,\psi_0)^2 + \sigma_0^2 \: \partial_0 \phi(\psi_1,\psi_0)^2$ .
+
+We will use the following approximation to estimate the variance of the measures:
+
+- Risk Difference: $\phi(\psi_1,\psi_0) = \psi_1 - \psi_0$
+- Risk Ratio: $\phi(\psi_1,\psi_0) = \frac{\psi_1}{\psi_0}$
+- Odds Ratio: $\phi(\psi_1,\psi_0) = \frac{\psi_1}{1-\psi_1} \frac{1-\psi_0}{\psi_0}$
+- Survival Ratio: $\phi(\psi_1,\psi_0) = \frac{1- \psi_1}{1 - \psi_0}$.
+
+For the variance of the log-scale measures, we use the Delta Method approximation with:
+
+\begin{equation*}
+
+\sqrt{n} \: (\log(\phi(\hat{\psi}_1,\hat{\psi}_0)) - \log(\phi(\psi_1,\psi_0))) \xrightarrow{\mathcal{L}} \mathcal{N} ( 0, \xi^2 )
+
+\end{equation*}
+
+where $\xi^2 = \frac{1}{\phi(\psi_1,\psi_0)^2} \eta^2$.
 
 
 ## Use of metafor package
 
-If the measure used is Risk Difference, Risk Ratio or Odds Ratio, the forest plot, along with the causal meta-analysis estimate, will also have the estimate made with the random-effects model. The latter is estimated via the package "metafor" by W. Viechtbauer. The package "metafor" provides only estimates of the Risk Ratio and Odds Ratio in (natural) logarithmic scale, for the natural scale our package takes the exponential of the estimates and of the error term (to compute the confidence intervals).
+If the selected effect measure is Risk Difference (RD), Risk Ratio (RR) or Odds Ratio (OR) and the option `random.effects = TRUE` is set, the output and the forest plot will display two summary estimates: the primary 
+causal meta-analysis estimate and the conventional random-effects estimate.
+
+The random-effects estimate is calculated via the package `metafor` by W. Viechtbauer (2010), which is a well known tool for conducting meta-analysis on R. 
+
+It is important to notice that the package `metafor` only provides estimates of the Risk Ratio and Odds Ratio on the logarithmic scale. Our package automatically converts these log-scale estimates back to the natural scale by applying the exponential function to both the point estimate and the bounds of the confidence interval.
+
+The following excerpt from the `causalmeta` function illustrates how we integrate `metafor` for our computation:
+
+```{r metafor, eval = FALSE}
+# Create forest plot with single study results
+metafor::forest(x = results$thetai, ci.lb = results$ci.lb, ci.ub = results$ci.ub,
+                header = c("Study",paste(measure_name,"[95% CI]")), top=2,
+                ylim=c(-2, n_study+2), refline = refline, cex = 0.8)
+
+# Computation of random-effects analysis and disply in forest plot, if
+# option "random.effects = TRUE"
+dat <- metafor::escalc(measure=measure, ai=ai_vals, n1i=n1i_vals, ci=ci_vals,
+                       n2i=n2i_vals, data=dat)
+metafor::addpoly(res_random_effects, row = -1, mlab="Random-effects model", cex = 0.8)
+
+# Display causal-meta analysis in forest plot
+res <- metafor::rma(yi = result$estimate, sei = result$se, method="FE")
+metafor::addpoly(res, row = 0, mlab="Causal meta-analysis", cex = 0.8)
+```
 
 ## References
 
 Berenfeld, C., Boughdiri, A., Colnet, B., van Amsterdam, W. A. C., Bellet, A., Khellaf, R., Scornet, E., & Josse, J. (2025). Causal Meta-Analysis: Rethinking the Foundations of Evidence-Based Medicine. arXiv:2505.20168.
 
 Viechtbauer, W. (2010). Conducting Meta-Analyses in R with the metafor Package. Journal of Statistical Software, 36(3), 1–48. https://doi.org/10.18637/jss.v036.i03
-
-# Appendix
-
-## Appendix A.1
-
 
