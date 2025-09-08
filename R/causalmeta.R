@@ -15,6 +15,7 @@
 #' @param weights optional vector of study weights, a value of NULL (the default) corresponds to study size / total size
 #' @param plot set to TRUE to print forestplot, default is FALSE
 #' @param log.scale set to TRUE to have log scale of the measure (only for RR, OR and SR), default is FALSE
+#' @param random.effects set to TRUE to have random effects meta-analysis estimate (along with causal meta-analysis estimate) both in the output and in the plot, default is TRUE (possible with all measures except SR)
 #' @param ...
 #'
 #' @details The function can be used by either inputting "ai,bi,ci,di" or "ai,ci,n1i,n2i". Accepted measures are: "RD" = Risk Difference, "RR" = Risk Ratio, "OR" = Odds Ratio, "SR" = Survival Ratio
@@ -23,6 +24,7 @@
 #' \describe{
 #' \item{study_results}{list of effect sizes or outcome measures for each study and associated standard errors}
 #' \item{final_result}{aggregated effect size or outcome measure and associated standard error}
+#' \item{random_effects_model}{random-effect model estimate and standard error, if "random.effects = TRUE"}
 #' }
 #'
 #' @examples
@@ -51,6 +53,9 @@
 #' result <- causalmeta(measure = "RR", ai = treated_positives, bi = treated_negatives,
 #'                     ci = control_positives, di = control_negatives)
 #'
+#' @author Clement Berenfeld, Ahmed Boughdiri, Julie Josse, Charif El Gataa.
+#'
+#' \strong{Maintainer}: Clement Berenfeld <clement.berenfeld@inria.fr>
 #'
 #'
 #' @references
@@ -68,7 +73,7 @@
 #' @export
 #'
 #'
-causalmeta <- function(measure, ai, bi, ci, di, n1i, n2i, slab, data = NULL, weights = NULL, plot = FALSE, log.scale = FALSE, ...){
+causalmeta <- function(measure, ai, bi, ci, di, n1i, n2i, slab, data = NULL, weights = NULL, plot = FALSE, log.scale = FALSE, random.effects = TRUE, ...){
 
   # Input validation on required parameters (measure, ai, ci)
 
@@ -87,7 +92,7 @@ causalmeta <- function(measure, ai, bi, ci, di, n1i, n2i, slab, data = NULL, wei
     stop("Must provide either ('bi', 'di') or ('n1i', 'n2i')", call. = FALSE)
   }
 
-  # Stop if measure is Risk Differene and log scale is TRUE
+  # Stop if measure is Risk Difference and log scale is TRUE
   if(measure == "RD" && log.scale == TRUE){stop("Risk Difference cannot be computed in log scale", call. = FALSE)}
 
   # Validate values of inputs and create list needed for next part of function
@@ -147,18 +152,18 @@ causalmeta <- function(measure, ai, bi, ci, di, n1i, n2i, slab, data = NULL, wei
 
     # if(plot){
       if(measure == "RD"){
-        yi <- mu_1_k - mu_0_k
+        thetai <- mu_1_k - mu_0_k
         vi <- (mu_0_k*(1- mu_0_k) / n1i_vals) + (mu_1_k*(1 - mu_1_k) / n2i_vals)
-        ci.lb <- yi - 1.96*sqrt(vi)
-        ci.ub <- yi + 1.96*sqrt(vi)
+        ci.lb <- thetai - 1.96*sqrt(vi)
+        ci.ub <- thetai + 1.96*sqrt(vi)
       }
       else if(measure == "RR"){
         ratio_i <- mu_1_k / mu_0_k
         vi_log <- (n1i_vals - ai_vals) / (n1i_vals * ai_vals) + (n2i_vals - ci_vals) / (n2i_vals * ci_vals)
         ci_log_i <- 1.96 * sqrt(vi_log)
 
-        if(log.scale){ yi <- log(ratio_i); vi <- vi_log; ci.lb <- yi - ci_log_i; ci.ub <- yi + ci_log_i}
-        else if(!log.scale){ yi <- ratio_i; vi <- vi_log*ratio_i^2; ef <- exp(ci_log_i); ci.lb <- yi / ef; ci.ub <- yi * ef}
+        if(log.scale){ thetai <- log(ratio_i); vi <- vi_log; ci.lb <- thetai - ci_log_i; ci.ub <- thetai + ci_log_i}
+        else if(!log.scale){ thetai <- ratio_i; vi <- vi_log*ratio_i^2; ef <- exp(ci_log_i); ci.lb <- thetai / ef; ci.ub <- thetai * ef}
 
       }
       else if(measure == "OR"){
@@ -166,8 +171,8 @@ causalmeta <- function(measure, ai, bi, ci, di, n1i, n2i, slab, data = NULL, wei
         vi_log <- (1/ai_vals) + (1/(n1i_vals - ai_vals)) + (1/ci_vals) + (1/(n2i_vals - ci_vals))
         ci_log_i <- 1.96 * sqrt(vi_log)
 
-        if(log.scale){ yi <- log(ratio_i); vi <- vi_log; ci.lb <- yi - ci_log_i; ci.ub <- yi + ci_log_i}
-        else if(!log.scale){ yi <- ratio_i; vi <- vi_log*ratio_i^2; ef <- exp(ci_log_i); ci.lb <- yi / ef; ci.ub <- yi * ef}
+        if(log.scale){ thetai <- log(ratio_i); vi <- vi_log; ci.lb <- thetai - ci_log_i; ci.ub <- thetai + ci_log_i}
+        else if(!log.scale){ thetai <- ratio_i; vi <- vi_log*ratio_i^2; ef <- exp(ci_log_i); ci.lb <- thetai / ef; ci.ub <- thetai * ef}
 
       }
       else if(measure == "SR"){
@@ -175,8 +180,8 @@ causalmeta <- function(measure, ai, bi, ci, di, n1i, n2i, slab, data = NULL, wei
         vi_log <- (ai_vals / (n1i_vals * (n1i_vals - ai_vals))) + (ci_vals / (n2i_vals * (n2i_vals - ci_vals)))
         ci_log_i <- 1.96 * sqrt(vi_log)
 
-        if(log.scale){ yi <- log(ratio_i); vi <- vi_log; ci.lb <- yi - ci_log_i; ci.ub <- yi + ci_log_i}
-        else if(!log.scale){ yi <- ratio_i; vi <- vi_log*ratio_i^2; ef <- exp(ci_log_i); ci.lb <- yi / ef; ci.ub <- yi * ef}
+        if(log.scale){ thetai <- log(ratio_i); vi <- vi_log; ci.lb <- thetai - ci_log_i; ci.ub <- thetai + ci_log_i}
+        else if(!log.scale){ thetai <- ratio_i; vi <- vi_log*ratio_i^2; ef <- exp(ci_log_i); ci.lb <- thetai / ef; ci.ub <- thetai * ef}
 
       }
 
@@ -184,7 +189,7 @@ causalmeta <- function(measure, ai, bi, ci, di, n1i, n2i, slab, data = NULL, wei
         proba_k = proba_k,
         mu_0_k = mu_0_k,
         mu_1_k = mu_1_k,
-        yi = yi,
+        thetai = thetai,
         sei = sqrt(vi),
         ci.lb = ci.lb,
         ci.ub = ci.ub,
@@ -208,7 +213,7 @@ causalmeta <- function(measure, ai, bi, ci, di, n1i, n2i, slab, data = NULL, wei
   })
 
   if(!missing(slab)) {results$study <- slab_vals}
-  else {results$study <- paste0("Study ", seq_along(results$yi))}
+  else {results$study <- paste0("Study ", seq_along(results$thetai))}
 
   # Number of studies with non-zero sample size
   n_study <- nrow(results)
@@ -234,79 +239,117 @@ causalmeta <- function(measure, ai, bi, ci, di, n1i, n2i, slab, data = NULL, wei
                          "SR" = if (EY0 != 1) (1 - EY1) / (1 - EY0) else NA_real_
   )
 
+  if(!is.na(final_result)){
+
+  e_k <- results$n1i / results$n.k # propensity scores
+
+  sigma2_0 <- sum(results$proba_k * results$mu_0_k^2) - EY0^2 + sum((results$n.k * results$mu_0_k * (1 - results$mu_0_k)) / ((1 - e_k) * n_total))
+
+  sigma2_1 <- sum(results$proba_k * results$mu_1_k^2) - EY1^2 + sum((results$n.k * results$mu_1_k * (1 - results$mu_1_k)) / (e_k * n_total))
+
+  switch(measure,
+         "RD" = {
+           d_psi_0 <- -1
+           d_psi_1 <- 1
+         },
+         "RR" = {
+           d_psi_0 <- - EY1 / EY0^2
+           d_psi_1 <- 1 / EY0
+         },
+         "OR" = {
+           d_psi_0 <- (- EY1) / ((1 - EY1) * EY0^2)
+           d_psi_1 <- (1 - EY0) / ((1 - EY1)^2 * EY0)
+         },
+         "SR" = {
+           d_psi_0 <-  (1 - EY1) / (1 - EY0)^2
+           d_psi_1 <- - 1 / (1 - EY0)
+         })
+
+  variance <- (sigma2_0 * d_psi_0^2 + sigma2_1 * d_psi_1^2) / n_total
+
+  if(log.scale){
+    variance <- variance / final_result^2 # delta method
+  }
+
+  } else NA_real_
+
   # Variance estimation (depends on effect measure)
-  variance <- switch(measure,
-                     "RD" = {
-                       theta_k <- results$mu_1_k - results$mu_0_k
-                       theta <- sum(results$n.k * theta_k / n_total)
-                       xi1_sq <- sum((results$n.k^2) / (results$n1i * n_total) * results$mu_1_k * (1 - results$mu_1_k))
-                       xi0_sq <- sum((results$n.k^2) / (results$n2i * n_total) * results$mu_0_k * (1 - results$mu_0_k))
-                       part2 <- sum(results$n.k / n_total * theta_k^2) - theta^2
-                       (xi1_sq + xi0_sq + part2) / n_total
-                     },
-                     "RR" = {
-                       if (!is.na(final_result)) {
-                         zeta1_sq <- sum((results$n.k^2) / (results$n1i * n_total) * results$mu_1_k) / (EY1^2)
-                         zeta0_sq <- sum((results$n.k^2) / (results$n2i * n_total) * results$mu_0_k) / (EY0^2)
-                         var <- (zeta1_sq + zeta0_sq) / n_total
-                         if(!log.scale){var <- var*final_result^2} # delta method on log(RR): divide by ratio^2 variance of RR
-                         var
-                       } else NA_real_
-                     },
-                     "OR" = {
-                       if(!is.na(final_result)) {
-
-                         e_k <- results$n1i / results$n.k # propensity scores
-
-                         sigma2_0 <- sum(results$n.k * results$mu_0_k^2 / n_total) - sum(results$n.k * results$mu_0_k / n_total)^2 + sum((results$n.k * results$mu_0_k * (1 - results$mu_0_k)) / ((1 - e_k) * n_total))
-
-                         sigma2_1 <- sum(results$n.k * results$mu_1_k^2 / n_total) - sum(results$n.k * results$mu_1_k / n_total)^2 + sum((results$n.k * results$mu_1_k * (1 - results$mu_1_k)) / (e_k * n_total))
-
-                         #if(!log.scale){
-                           d_psi_0 <- (- EY1) / ((1 - EY1) * EY0^2)
-                           d_psi_1 <- (1 - EY0) / ((1 - EY1)^2 * EY0)
-
-                           var <- (sigma2_0 * d_psi_0^2 + sigma2_1 * d_psi_1^2) / n_total
-                         #}
-                         if(log.scale){
-                           #d_psi_0 <- (1 / (1 - EY0)) - (1 / EY0)
-                           #d_psi_1 <- (1 / EY1) - (1 / (1 - EY1))
-
-                           var <- var / final_result^2 #delta method, old method: (sigma2_0 * d_psi_0^2 + sigma2_1 * d_psi_1^2) / n_total + other comments
-                         }
-                         var
-                       } else NA_real_
-                     },
-                     "SR" = {
-                       if (!is.na(final_result)) {
-                        zeta1_sq <- sum((results$n.k^2) / (results$n1i * n_total) * (1 - results$mu_1_k)) / (EY1^2)
-                        zeta0_sq <- sum((results$n.k^2) / (results$n2i * n_total) * (1 - results$mu_0_k)) / (EY0^2)
-                        var <- (zeta1_sq + zeta0_sq) # / n_total ?
-                        if(!log.scale){var <- var*final_result^2} # delta method on log(SR): divide by ratio^2 variance of SR
-                        var
-                       } else NA_real_
-                     }
-  )
+  # variance <- switch(measure,
+  #                    "RD" = {
+  #                      theta_k <- results$mu_1_k - results$mu_0_k
+  #                      theta <- sum(results$n.k * theta_k / n_total)
+  #                      xi1_sq <- sum((results$n.k^2) / (results$n1i * n_total) * results$mu_1_k * (1 - results$mu_1_k))
+  #                      xi0_sq <- sum((results$n.k^2) / (results$n2i * n_total) * results$mu_0_k * (1 - results$mu_0_k))
+  #                      part2 <- sum(results$n.k / n_total * theta_k^2) - theta^2
+  #                      (xi1_sq + xi0_sq + part2) / n_total
+  #                    },
+  #                    "RR" = {
+  #                      if (!is.na(final_result)) {
+  #                        zeta1_sq <- sum((results$n.k^2) / (results$n1i * n_total) * results$mu_1_k) / (EY1^2)
+  #                        zeta0_sq <- sum((results$n.k^2) / (results$n2i * n_total) * results$mu_0_k) / (EY0^2)
+  #                        var <- (zeta1_sq + zeta0_sq) / n_total
+  #                        if(!log.scale){var <- var*final_result^2} # delta method on log(RR): divide by ratio^2 variance of RR
+  #                        var
+  #                      } else NA_real_
+  #                    },
+  #                    "OR" = {
+  #                      if(!is.na(final_result)) {
+  #
+  #                        e_k <- results$n1i / results$n.k # propensity scores
+  #
+  #                        sigma2_0 <- sum(results$n.k * results$mu_0_k^2 / n_total) - sum(results$n.k * results$mu_0_k / n_total)^2 + sum((results$n.k * results$mu_0_k * (1 - results$mu_0_k)) / ((1 - e_k) * n_total))
+  #
+  #                        sigma2_1 <- sum(results$n.k * results$mu_1_k^2 / n_total) - sum(results$n.k * results$mu_1_k / n_total)^2 + sum((results$n.k * results$mu_1_k * (1 - results$mu_1_k)) / (e_k * n_total))
+  #
+  #                        #if(!log.scale){
+  #                          d_psi_0 <- (- EY1) / ((1 - EY1) * EY0^2)
+  #                          d_psi_1 <- (1 - EY0) / ((1 - EY1)^2 * EY0)
+  #
+  #                          var <- (sigma2_0 * d_psi_0^2 + sigma2_1 * d_psi_1^2) / n_total
+  #                        #}
+  #                        if(log.scale){
+  #                          #d_psi_0 <- (1 / (1 - EY0)) - (1 / EY0)
+  #                          #d_psi_1 <- (1 / EY1) - (1 / (1 - EY1))
+  #
+  #                          var <- var / final_result^2 #delta method, old method: (sigma2_0 * d_psi_0^2 + sigma2_1 * d_psi_1^2) / n_total + other comments
+  #                        }
+  #                        var
+  #                      } else NA_real_
+  #                    },
+  #                    "SR" = {
+  #                      if (!is.na(final_result)) {
+  #                       zeta1_sq <- sum((results$n.k^2) / (results$n1i * n_total) * (1 - results$mu_1_k)) / (EY1^2)
+  #                       zeta0_sq <- sum((results$n.k^2) / (results$n2i * n_total) * (1 - results$mu_0_k)) / (EY0^2)
+  #                       var <- (zeta1_sq + zeta0_sq) / n_total # ?
+  #                       if(!log.scale){var <- var*final_result^2} # delta method on log(SR): divide by ratio^2 variance of SR
+  #                       var
+  #                      } else NA_real_
+  #                    }
+  # )
 
   if(log.scale){final_result <- log(final_result)} # Change it after computing the variance since we need ratios to compute variance
 
   result <- tibble::tibble(estimate = final_result, se = sqrt(variance))
 
+  # Random effects model
+  if(random.effects && measure != "SR"){
+    dat <- metafor::escalc(measure=measure, ai=ai_vals, n1i=n1i_vals, ci=ci_vals, n2i=n2i_vals, data=dat)
+    res_random_effects <- metafor::rma(dat$yi, dat$vi, method="DL")
+
+    res_random_effects_beta <- if(is.element(measure,c("OR","RR")) && log.scale == FALSE) exp(res_random_effects$beta) else res_random_effects$beta
+    res_random_effects_se <- if(is.element(measure,c("OR","RR")) && log.scale == FALSE) res_random_effects_beta*res_random_effects$se else res_random_effects$se # if log.scale == FALSE, use delta method for std. err. with log.scale variance and f(x) = exp(x)
+  }
+
   if(plot){
 
     res <- metafor::rma(yi = result$estimate, sei = result$se, method="FE")
 
-    if(measure!="SR"){
-      # Random effects model
-      dat <- metafor::escalc(measure=measure, ai=ai_vals, n1i=n1i_vals, ci=ci_vals, n2i=n2i_vals, data=dat)
-      res_random_effects <- metafor::rma(dat$yi, dat$vi, method="DL")
-      if(is.element(measure,c("OR","RR")) && log.scale == FALSE){
-        res_random_effects_beta <- exp(res_random_effects$beta) # estimate of the measure with random effects model
-        ef_random_effects <- exp(1.96 * res_random_effects$se) # error factor
-        # upper and lower 95% confidence bounds for the estimate
-        res_random_effects_ci.lb <- res_random_effects_beta / ef_random_effects
-        res_random_effects_ci.ub <- res_random_effects_beta * ef_random_effects
-      }
+    if(is.element(measure,c("OR","RR")) && log.scale == FALSE && random.effects){
+      #res_random_effects_beta <- exp(res_random_effects$beta) # estimate of the measure with random effects model
+      ef_random_effects <- exp(1.96 * res_random_effects$se) # error factor
+      # upper and lower 95% confidence bounds for the estimate
+      res_random_effects_ci.lb <- res_random_effects_beta / ef_random_effects
+      res_random_effects_ci.ub <- res_random_effects_beta * ef_random_effects
     }
 
     measure_name <- if(log.scale) paste("log(",measure,")", sep = "") else measure
@@ -314,7 +357,7 @@ causalmeta <- function(measure, ai, bi, ci, di, n1i, n2i, slab, data = NULL, wei
 
     par(mar=c(2,2,2,2))
     if(!missing(slab)){
-      metafor::forest(x = results$yi,
+      metafor::forest(x = results$thetai,
                       ci.lb = results$ci.lb,
                       ci.ub = results$ci.ub,
                       header = c("Study",paste(measure_name,"[95% CI]")),
@@ -325,7 +368,7 @@ causalmeta <- function(measure, ai, bi, ci, di, n1i, n2i, slab, data = NULL, wei
                       slab = slab_vals)
       }
     else {
-      metafor::forest(x = results$yi,
+      metafor::forest(x = results$thetai,
                       ci.lb = results$ci.lb,
                       ci.ub = results$ci.ub,
                       header = c("Study",paste(measure_name,"[95% CI]")),
@@ -337,7 +380,7 @@ causalmeta <- function(measure, ai, bi, ci, di, n1i, n2i, slab, data = NULL, wei
 
     metafor::addpoly(res, row = 0, mlab="Causal meta-analysis", cex = 0.8)
 
-    if(measure!="SR"){
+    if(measure!="SR" && random.effects){
       if(is.element(measure,c("OR","RR")) && log.scale == FALSE){
         metafor::addpoly(x = res_random_effects_beta,
                          ci.lb = res_random_effects_ci.lb,
@@ -352,7 +395,11 @@ causalmeta <- function(measure, ai, bi, ci, di, n1i, n2i, slab, data = NULL, wei
 
   }
 
-  return(list(study_results = dplyr::select(results,c(study,yi,sei)), final_result = result))
+  if(random.effects && measure != "SR") {
+    random_effects_result <- tibble::tibble(estimate = res_random_effects_beta, se = res_random_effects_se)
+    return(list(study_results = dplyr::select(results,c(study,thetai,sei)), final_result = result, random_effects_model = random_effects_result))
+  }
+  else {return(list(study_results = dplyr::select(results,c(study,thetai,sei)), final_result = result))}
 
 }
 
