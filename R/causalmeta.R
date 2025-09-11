@@ -336,7 +336,7 @@ causalmeta <- function(measure, ai, bi, ci, di, n1i, n2i, slab, data = NULL, wei
     dat <- metafor::escalc(measure=measure, ai=ai_vals, n1i=n1i_vals, ci=ci_vals, n2i=n2i_vals, data=dat)
     res_random_effects <- metafor::rma(dat$yi, dat$vi, method="DL")
 
-    res_random_effects_beta <- if(is.element(measure,c("OR","RR")) && log.scale == FALSE) exp(res_random_effects$beta) else res_random_effects$beta
+    res_random_effects_beta <- if(is.element(measure,c("OR","RR")) && log.scale == FALSE) exp(as.numeric(res_random_effects$beta)) else as.numeric(res_random_effects$beta)
     res_random_effects_se <- if(is.element(measure,c("OR","RR")) && log.scale == FALSE) res_random_effects_beta*res_random_effects$se else res_random_effects$se # if log.scale == FALSE, use delta method for std. err. with log.scale variance and f(x) = exp(x)
   }
 
