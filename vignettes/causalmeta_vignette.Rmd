@@ -110,9 +110,29 @@ result <- causalmeta(measure = measure, ai = treated_events, n1i = treated_total
                     ci = control_events, n2i = control_total, plot = TRUE)
 ```
 
+## Notation
+
+We consider a set of $K \in \mathbb{N}$ randomized controlled trials measuring the same binary outcome $Y \in \{0,1\}$ and the same binary treatment $A \in \{0,1\}$. We assume that each study provides a table of the positive and negative outcomes among both the treated and untreated groups, as follows:
+
+```{r, echo=FALSE}
+library(kableExtra)
+
+df <- data.frame(Cat = c("A=1","A=0"),
+                 "Y=1" = c("$n_{11}(k)$","$n_{10}(k)$"),
+                 "Y=0" = c("$n_{01}(k)$","$n_{00}(k)$"))
+kable(df, col.names = c("","Y=1","Y=0"), escape = F) %>% kable_styling(latex_options = "hold_position")
+
+```
+
+where $n_{ay}(k)$ denotes the number of individuals in the study $k \in [K]$ with treatment status $A = a$ and observed outcome $Y=y$.
+
+Let $Y(a)$ be the counterfactual outcome under $A = a$ and $H \in [K]$ be the study variable.
+
 ## Computation of confidence intervals
 
-Let $\hat{\psi}_a (k) = n_{a1}(k) / n_a(k)$ be the natural estimator of $\psi_a (k) = \mathbb{E}[Y(a)|H=k]$ with $a \in \{0,1\}$. Let $\hat{\psi}_a = \sum_{k=1}^K \psi_a(k)$ the estimator of $\psi_a = \mathbb{E}[Y(a)]$ where $\pi_k = \mathbb{P}(H = k)$. The estimator is asymptotically normal, converging to the following distribution:
+Let $\hat{\psi}_a (k) = n_{a1}(k) / n_a(k)$ be the natural estimator of $\psi_a (k) = \mathbb{E}[Y(a)|H=k]$ with $a \in \{0,1\}$. Let $\hat{\psi}_a = \sum_{k=1}^K \hat{\pi}_k \hat{\psi}_a(k)$ the estimator of $\psi_a = \mathbb{E}[Y(a)]$ where $\pi_k = \mathbb{P}(H = k)$ and $\hat{\pi}_k = n_a(k)/n_k$.
+
+The estimator is asymptotically normal, converging to the following distribution:
 
 \begin{equation*}
 
@@ -128,7 +148,7 @@ where the asymptotic variances are given by:
 
 \end{equation*}
 
-with $e(k) = \mathbb{P}(A = 1 | H = k)$.
+with $e(k) = \mathbb{P}(A = 1 | H = k)$ and $a \in \{ 0,1\}$.
 
 Then, by applying the delta method, we find that for every first-order continuously differentiable contrast $\phi \: : \: (\psi_1,\psi_0) \mapsto \phi(\psi_1,\psi_0)$ we have:
 
@@ -140,28 +160,26 @@ Then, by applying the delta method, we find that for every first-order continuou
 
 where $\eta^2 = \sigma_1^2 \: \partial_1 \phi(\psi_1,\psi_0)^2 + \sigma_0^2 \: \partial_0 \phi(\psi_1,\psi_0)^2$ .
 
-We will use the following approximation to estimate the variance of the measures:
+We will use the following approximation to estimate the variance of the measures, both in natural and logarithmic scale:
 
 - Risk Difference: $\phi(\psi_1,\psi_0) = \psi_1 - \psi_0$
 - Risk Ratio: $\phi(\psi_1,\psi_0) = \frac{\psi_1}{\psi_0}$
 - Odds Ratio: $\phi(\psi_1,\psi_0) = \frac{\psi_1}{1-\psi_1} \frac{1-\psi_0}{\psi_0}$
 - Survival Ratio: $\phi(\psi_1,\psi_0) = \frac{1- \psi_1}{1 - \psi_0}$.
 
-For the variance of the log-scale measures, we use the Delta Method approximation with:
+<!-- For the variance of the log-scale measures, we use the Delta Method approximation with: -->
 
-\begin{equation*}
+<!-- \begin{equation*} -->
 
-\sqrt{n} \: (\log(\phi(\hat{\psi}_1,\hat{\psi}_0)) - \log(\phi(\psi_1,\psi_0))) \xrightarrow{\mathcal{L}} \mathcal{N} ( 0, \xi^2 )
+<!-- \sqrt{n} \: (\log(\phi(\hat{\psi}_1,\hat{\psi}_0)) - \log(\phi(\psi_1,\psi_0))) \xrightarrow{\mathcal{L}} \mathcal{N} ( 0, \xi^2 ) -->
 
-\end{equation*}
+<!-- \end{equation*} -->
 
-where $\xi^2 = \frac{1}{\phi(\psi_1,\psi_0)^2} \eta^2$.
-
+<!-- where $\xi^2 = \frac{1}{\phi(\psi_1,\psi_0)^2} \eta^2$. -->
 
 ## Use of metafor package
 
-If the selected effect measure is Risk Difference (RD), Risk Ratio (RR) or Odds Ratio (OR) and the option `random.effects = TRUE` is set, the output and the forest plot will display two summary estimates: the primary 
-causal meta-analysis estimate and the conventional random-effects estimate.
+If the selected effect measure is Risk Difference (RD), Risk Ratio (RR) or Odds Ratio (OR) and the option `random.effects = TRUE` is set, the output and the forest plot will display two summary estimates: the primary causal meta-analysis estimate and the conventional random-effects estimate.
 
 The random-effects estimate is calculated via the package `metafor` by W. Viechtbauer (2010), which is a well known tool for conducting meta-analysis on R. 
 
@@ -175,7 +193,7 @@ metafor::forest(x = results$thetai, ci.lb = results$ci.lb, ci.ub = results$ci.ub
                 header = c("Study",paste(measure_name,"[95% CI]")), top=2,
                 ylim=c(-2, n_study+2), refline = refline, cex = 0.8)
 
-# Computation of random-effects analysis and disply in forest plot, if
+# Computation of random-effects analysis and display in forest plot, if
 # option "random.effects = TRUE"
 dat <- metafor::escalc(measure=measure, ai=ai_vals, n1i=n1i_vals, ci=ci_vals,
                        n2i=n2i_vals, data=dat)
