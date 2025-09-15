@@ -148,7 +148,7 @@ where the asymptotic variances are given by:
 
 \end{equation*}
 
-with $e(k) = \mathbb{P}(A = 1 | H = k)$ and $a \in \{ 0,1\}$.
+with $e(k) = \mathbb{P}(A = 1 | H = k)$ and $a \in \{ 0,1 \}$.
 
 Then, by applying the delta method, we find that for every first-order continuously differentiable contrast $\phi \: : \: (\psi_1,\psi_0) \mapsto \phi(\psi_1,\psi_0)$ we have:
 
@@ -158,14 +158,26 @@ Then, by applying the delta method, we find that for every first-order continuou
 
 \end{equation*}
 
-where $\eta^2 = \sigma_1^2 \: \partial_1 \phi(\psi_1,\psi_0)^2 + \sigma_0^2 \: \partial_0 \phi(\psi_1,\psi_0)^2$ .
+where 
 
-We will use the following approximation to estimate the variance of the measures, both in natural and logarithmic scale:
+\begin{equation*}
+\eta^2 = \sigma_1^2 \: \partial_1 \phi(\psi_1,\psi_0)^2 + \sigma_0^2 \: \partial_0 \phi(\psi_1,\psi_0)^2
+\end{equation*}
+
+and $\partial_a \phi(\psi_1,\psi_0)$ denotes the partial derivative of $\phi$ with respect to $\psi_a$.
+
+We will use the above approximation to estimate the variance of the measures:
 
 - Risk Difference: $\phi(\psi_1,\psi_0) = \psi_1 - \psi_0$
 - Risk Ratio: $\phi(\psi_1,\psi_0) = \frac{\psi_1}{\psi_0}$
 - Odds Ratio: $\phi(\psi_1,\psi_0) = \frac{\psi_1}{1-\psi_1} \frac{1-\psi_0}{\psi_0}$
 - Survival Ratio: $\phi(\psi_1,\psi_0) = \frac{1- \psi_1}{1 - \psi_0}$.
+
+We also provide estimates and confidence intervals for the Risk Ratio, Odds Ratio, and Survival Ratio on the logarithmic scale. In that case, the required partial derivatives for $a \in {0,1}$ are given by:
+
+\begin{equation*}
+\partial_a \log \phi(\psi_1,\psi_0) = \frac{1}{\phi(\psi_1,\psi_0)} \partial_a \phi(\psi_1,\psi_0)
+\end{equation*}
 
 <!-- For the variance of the log-scale measures, we use the Delta Method approximation with: -->
 
