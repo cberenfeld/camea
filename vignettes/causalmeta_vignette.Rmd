@@ -138,7 +138,7 @@ The estimator is asymptotically normal, converging to the following distribution
 
 \begin{equation*}
 
-\sqrt{n} \: ((\hat{\psi}_1,\hat{\psi}_0) - (\psi_1,\psi_0)) \xrightarrow{\mathcal{L}} \mathcal{N}\biggr{(}0, \begin{bmatrix} 0 & \sigma^2_1 \\ \sigma^2_0 & 0 \end{bmatrix} \biggr{)}
+\sqrt{n} \: ((\hat{\psi}_1,\hat{\psi}_0) - (\psi_1,\psi_0)) \xrightarrow{L} N\biggr{(}0, \begin{bmatrix} 0 & \sigma^2_1 \\ \sigma^2_0 & 0 \end{bmatrix} \biggr{)}
 
 \end{equation*}
 
@@ -156,7 +156,7 @@ Then, by applying the delta method, we find that for every first-order continuou
 
 \begin{equation*}
 
-\sqrt{n} \: (\phi(\hat{\psi}_1,\hat{\psi}_0) - \phi(\psi_1,\psi_0)) \xrightarrow{\mathcal{L}} \mathcal{N} ( 0, \eta^2 )
+\sqrt{n} \: (\phi(\hat{\psi}_1,\hat{\psi}_0) - \phi(\psi_1,\psi_0)) \xrightarrow{L} N ( 0, \eta^2 )
 
 \end{equation*}
 
@@ -185,7 +185,7 @@ We also provide estimates and confidence intervals for the Risk Ratio, Odds Rati
 
 <!-- \begin{equation*} -->
 
-<!-- \sqrt{n} \: (\log(\phi(\hat{\psi}_1,\hat{\psi}_0)) - \log(\phi(\psi_1,\psi_0))) \xrightarrow{\mathcal{L}} \mathcal{N} ( 0, \xi^2 ) -->
+<!-- \sqrt{n} \: (\log(\phi(\hat{\psi}_1,\hat{\psi}_0)) - \log(\phi(\psi_1,\psi_0))) \xrightarrow{L} N ( 0, \xi^2 ) -->
 
 <!-- \end{equation*} -->
 
