@@ -115,6 +115,7 @@ result <- causalmeta(measure = measure, ai = treated_events, n1i = treated_total
 We consider a set of $K \in \mathbb{N}$ randomized controlled trials measuring the same binary outcome $Y \in \{0,1\}$ and the same binary treatment $A \in \{0,1\}$. We assume that each study provides a table of the positive and negative outcomes among both the treated and untreated groups, as follows:
 
 ```{r, echo=FALSE}
+if(!require("kableExtra")) install.package("kableExtra")
 library(kableExtra)
 
 df <- data.frame(Cat = c("A=1","A=0"),
