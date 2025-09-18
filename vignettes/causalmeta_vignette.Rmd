@@ -106,6 +106,7 @@ If `plot = TRUE` it is possible to print the forestplot of the meta-analysis.
 
 ```{r my-forest-plot, fig.width=9, fig.height=7, out.width='100%'}
 # apply the same function but print the plot
+par(mar = c(5, 8, 6, 2))
 result <- causalmeta(measure = measure, ai = treated_events, n1i = treated_total,
                     ci = control_events, n2i = control_total, plot = TRUE)
 ```
