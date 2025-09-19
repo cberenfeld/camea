@@ -19,7 +19,7 @@ If `log.scale = TRUE`, the meta-analysis will be performed on the logarithmic tr
 The latest release of the package can be installed through CRAN (soon):
 
 ```{r, eval = FALSE}
-install.packages("camea")
+install.packages("CaMeA")
 ```
 
 The development version can be installed from github
