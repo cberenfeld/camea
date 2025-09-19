@@ -1,6 +1,6 @@
-Package: causalmeta
+Package: CaMeA
 Type: Package
-Title: Causal Meta-Analysis
+Title: Causal Meta-Analysis for Aggregated Data
 Version: 0.1.0
 Authors@R: c(
     person(given = "Charif", family = "El Gataa", email = "charif.el-gataa@inria.fr", role = c("aut", "cre")),
