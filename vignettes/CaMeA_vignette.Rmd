@@ -22,7 +22,7 @@ library(CaMeA)
 
 A package for causal meta-analysis estimation of a binary response and binary treatment using aggregated data, based on Berenfeld et al. (https://arxiv.org/abs/2505.20168). The output is the aggregated estimate and its standard deviation, the package allows for simple and fast computation of different measures such as Risk Difference (RD), Risk Ratio (RR), Odds Ratio (OR) and Survival Ratio (SR).
 
-The package consists of a the function "camea". This function can take the measures Risk Difference, Risk Ratio and log-Risk Ratio, Odds Ratio and log-Odds Ratio, Survival Ratio and log-Survival Ratio.
+The package consists of the function "camea". This function can take the measures Risk Difference, Risk Ratio and log-Risk Ratio, Odds Ratio and log-Odds Ratio, Survival Ratio and log-Survival Ratio.
 
 The data can be input in the following formats: vectors, data.frame, matrix or sparse matrix.
 
