@@ -1,7 +1,7 @@
-#' Causal Meta Analysis
+#' Causal Meta Analysis for Aggregated Data
 #'
 #' @description
-#' Function to perform causal meta-analysis for binary treatment and binary outcomes.
+#' Function to perform causal meta-analysis on aggregated data of trials with binary treatment and binary outcome.
 #'
 #' @param measure a character string to specify which effect size or outcome measure should be calculated
 #' @param ai vector with the 2x2 table frequencies (upper left cell)
@@ -38,7 +38,7 @@
 #' )
 #'
 #' # Risk difference
-#' result <- causalmeta(measure = "RD", ai = treated_events, n1i = treated_total,
+#' result <- camea(measure = "RD", ai = treated_events, n1i = treated_total,
 #'                     ci = control_events, n2i = control_total,
 #'                     data = data, slab = study)
 #'
@@ -50,7 +50,7 @@
 #'
 #'
 #' # Risk ratio
-#' result <- causalmeta(measure = "RR", ai = treated_positives, bi = treated_negatives,
+#' result <- camea(measure = "RR", ai = treated_positives, bi = treated_negatives,
 #'                     ci = control_positives, di = control_negatives)
 #'
 #' @author Clement Berenfeld, Ahmed Boughdiri, Julie Josse, Charif El Gataa.
@@ -73,7 +73,7 @@
 #' @export
 #'
 #'
-causalmeta <- function(measure, ai, bi, ci, di, n1i, n2i, slab, data = NULL, weights = NULL, plot = FALSE, log.scale = FALSE, random.effects = TRUE, ...){
+camea <- function(measure, ai, bi, ci, di, n1i, n2i, slab, data = NULL, weights = NULL, plot = FALSE, log.scale = FALSE, random.effects = TRUE, ...){
 
   # Input validation on required parameters (measure, ai, ci)
 
@@ -99,18 +99,18 @@ causalmeta <- function(measure, ai, bi, ci, di, n1i, n2i, slab, data = NULL, wei
   if(is.null(data)){
 
     # Validate inputs
-    dat <- .validate_vector_inputs(ai = ai, bi = bi, ci = ci, di = di, n1i = n1i, n2i = n2i, has_n = has_n_totals, has_t = has_table_entries)
+    dat <- validate_vector_inputs(ai = ai, bi = bi, ci = ci, di = di, n1i = n1i, n2i = n2i, has_n = has_n_totals, has_t = has_table_entries)
     if(!missing(slab)) {slab_vals <- slab}
 
   } else if(is.data.frame(data)){
 
     # Check: is variable in dataset?
-    .validate_variables(names = names(data), ai = deparse(substitute(ai)), bi = deparse(substitute(bi)),
+    validate_variables(names = names(data), ai = deparse(substitute(ai)), bi = deparse(substitute(bi)),
                         ci = deparse(substitute(ci)), di = deparse(substitute(di)), n1i = deparse(substitute(n1i)),
                         n2i = deparse(substitute(n2i)), has_n = has_n_totals, has_t = has_table_entries)
 
     # Validate inputs
-    dat <- .validate_vector_inputs(ai = data[[deparse(substitute(ai))]], bi = data[[deparse(substitute(bi))]],
+    dat <- validate_vector_inputs(ai = data[[deparse(substitute(ai))]], bi = data[[deparse(substitute(bi))]],
                                    ci = data[[deparse(substitute(ci))]], di = data[[deparse(substitute(di))]],
                                    n1i = data[[deparse(substitute(n1i))]], n2i = data[[deparse(substitute(n2i))]],
                                    has_n = has_n_totals, has_t = has_table_entries)
@@ -119,12 +119,12 @@ causalmeta <- function(measure, ai, bi, ci, di, n1i, n2i, slab, data = NULL, wei
   } else if(is.matrix(data) || inherits(data, "Matrix")){
 
     # Check: is variable in matrix?
-    .validate_variables(names = colnames(data), ai = deparse(substitute(ai)), bi = deparse(substitute(bi)),
+    validate_variables(names = colnames(data), ai = deparse(substitute(ai)), bi = deparse(substitute(bi)),
                         ci = deparse(substitute(ci)), di = deparse(substitute(di)), n1i = deparse(substitute(n1i)),
                         n2i = deparse(substitute(n2i)), has_n = has_n_totals, has_t = has_table_entries)
 
     # Validate inputs
-    dat <- .validate_vector_inputs(ai = data[, deparse(substitute(ai))], bi = data[, deparse(substitute(bi))],
+    dat <- validate_vector_inputs(ai = data[, deparse(substitute(ai))], bi = data[, deparse(substitute(bi))],
                                    ci = data[, deparse(substitute(ci))], di = data[, deparse(substitute(di))],
                                    n1i = data[, deparse(substitute(n1i))], n2i = data[, deparse(substitute(n2i))],
                                    has_n = has_n_totals, has_t = has_table_entries)
@@ -197,19 +197,6 @@ causalmeta <- function(measure, ai, bi, ci, di, n1i, n2i, slab, data = NULL, wei
         n2i = n2i_vals,
         n.k = n1i_vals + n2i_vals
       )
-
-    # }
-    #
-    # # Store computed statistics in a tibble (row)
-    # else{tibble::tibble(
-    #   proba_k = proba_k,
-    #   mu_0_k = mu_0_k,
-    #   mu_1_k = mu_1_k,
-    #   n1i = n1i_vals,
-    #   n2i = n2i_vals,
-    #   n.k = n1i_vals + n2i_vals
-    # )
-    # }
   })
 
   if(!missing(slab)) {results$study <- slab_vals}
@@ -273,78 +260,32 @@ causalmeta <- function(measure, ai, bi, ci, di, n1i, n2i, slab, data = NULL, wei
 
   } else NA_real_
 
-  # Variance estimation (depends on effect measure)
-  # variance <- switch(measure,
-  #                    "RD" = {
-  #                      theta_k <- results$mu_1_k - results$mu_0_k
-  #                      theta <- sum(results$n.k * theta_k / n_total)
-  #                      xi1_sq <- sum((results$n.k^2) / (results$n1i * n_total) * results$mu_1_k * (1 - results$mu_1_k))
-  #                      xi0_sq <- sum((results$n.k^2) / (results$n2i * n_total) * results$mu_0_k * (1 - results$mu_0_k))
-  #                      part2 <- sum(results$n.k / n_total * theta_k^2) - theta^2
-  #                      (xi1_sq + xi0_sq + part2) / n_total
-  #                    },
-  #                    "RR" = {
-  #                      if (!is.na(final_result)) {
-  #                        zeta1_sq <- sum((results$n.k^2) / (results$n1i * n_total) * results$mu_1_k) / (EY1^2)
-  #                        zeta0_sq <- sum((results$n.k^2) / (results$n2i * n_total) * results$mu_0_k) / (EY0^2)
-  #                        var <- (zeta1_sq + zeta0_sq) / n_total
-  #                        if(!log.scale){var <- var*final_result^2} # delta method on log(RR): divide by ratio^2 variance of RR
-  #                        var
-  #                      } else NA_real_
-  #                    },
-  #                    "OR" = {
-  #                      if(!is.na(final_result)) {
-  #
-  #                        e_k <- results$n1i / results$n.k # propensity scores
-  #
-  #                        sigma2_0 <- sum(results$n.k * results$mu_0_k^2 / n_total) - sum(results$n.k * results$mu_0_k / n_total)^2 + sum((results$n.k * results$mu_0_k * (1 - results$mu_0_k)) / ((1 - e_k) * n_total))
-  #
-  #                        sigma2_1 <- sum(results$n.k * results$mu_1_k^2 / n_total) - sum(results$n.k * results$mu_1_k / n_total)^2 + sum((results$n.k * results$mu_1_k * (1 - results$mu_1_k)) / (e_k * n_total))
-  #
-  #                        #if(!log.scale){
-  #                          d_psi_0 <- (- EY1) / ((1 - EY1) * EY0^2)
-  #                          d_psi_1 <- (1 - EY0) / ((1 - EY1)^2 * EY0)
-  #
-  #                          var <- (sigma2_0 * d_psi_0^2 + sigma2_1 * d_psi_1^2) / n_total
-  #                        #}
-  #                        if(log.scale){
-  #                          #d_psi_0 <- (1 / (1 - EY0)) - (1 / EY0)
-  #                          #d_psi_1 <- (1 / EY1) - (1 / (1 - EY1))
-  #
-  #                          var <- var / final_result^2 #delta method, old method: (sigma2_0 * d_psi_0^2 + sigma2_1 * d_psi_1^2) / n_total + other comments
-  #                        }
-  #                        var
-  #                      } else NA_real_
-  #                    },
-  #                    "SR" = {
-  #                      if (!is.na(final_result)) {
-  #                       zeta1_sq <- sum((results$n.k^2) / (results$n1i * n_total) * (1 - results$mu_1_k)) / (EY1^2)
-  #                       zeta0_sq <- sum((results$n.k^2) / (results$n2i * n_total) * (1 - results$mu_0_k)) / (EY0^2)
-  #                       var <- (zeta1_sq + zeta0_sq) / n_total # ?
-  #                       if(!log.scale){var <- var*final_result^2} # delta method on log(SR): divide by ratio^2 variance of SR
-  #                       var
-  #                      } else NA_real_
-  #                    }
-  # )
-
   if(log.scale){final_result <- log(final_result)} # Change it after computing the variance since we need ratios to compute variance
 
   result <- tibble::tibble(estimate = final_result, se = sqrt(variance))
 
   # Random effects model
+
   if(random.effects && measure != "SR"){
     dat <- metafor::escalc(measure=measure, ai=ai_vals, n1i=n1i_vals, ci=ci_vals, n2i=n2i_vals, data=dat)
     res_random_effects <- metafor::rma(dat$yi, dat$vi, method="DL")
 
     res_random_effects_beta <- if(is.element(measure,c("OR","RR")) && log.scale == FALSE) exp(as.numeric(res_random_effects$beta)) else as.numeric(res_random_effects$beta)
-    res_random_effects_se <- if(is.element(measure,c("OR","RR")) && log.scale == FALSE) res_random_effects_beta*res_random_effects$se else res_random_effects$se # if log.scale == FALSE, use delta method for std. err. with log.scale variance and f(x) = exp(x)
+    res_random_effects_se <- if(is.element(measure,c("OR","RR")) && log.scale == FALSE) res_random_effects_beta*res_random_effects$se else res_random_effects$se
+  }
+  else if(random.effects && is.element(measure,c("SR"))){
+    dat <- metafor::escalc(measure="RR", ai=ci_vals, n1i=n2i_vals, ci=ai_vals, n2i=n1i_vals, data=dat)
+    res_random_effects <- metafor::rma(dat$yi, dat$vi, method="DL")
+
+    res_random_effects_beta <- if(log.scale == FALSE) exp(as.numeric(res_random_effects$beta)) else as.numeric(res_random_effects$beta)
+    res_random_effects_se <- if(log.scale == FALSE) res_random_effects_beta*res_random_effects$se else res_random_effects$se
   }
 
   if(plot){
 
     res <- metafor::rma(yi = result$estimate, sei = result$se, method="FE")
 
-    if(is.element(measure,c("OR","RR")) && log.scale == FALSE && random.effects){
+    if(log.scale == FALSE && random.effects){ # is.element(measure,c("OR","RR")) &&
       #res_random_effects_beta <- exp(res_random_effects$beta) # estimate of the measure with random effects model
       ef_random_effects <- exp(1.96 * res_random_effects$se) # error factor
       # upper and lower 95% confidence bounds for the estimate
@@ -355,7 +296,7 @@ causalmeta <- function(measure, ai, bi, ci, di, n1i, n2i, slab, data = NULL, wei
     measure_name <- if(log.scale) paste("log(",measure,")", sep = "") else measure
     refline <- if(is.element(measure,c("RD")) || log.scale == TRUE) 0 else 1
 
-    par(mar=c(2,2,2,2))
+    par(mar=c(2,2,4,2))
     if(!missing(slab)){
       metafor::forest(x = results$thetai,
                       ci.lb = results$ci.lb,
@@ -380,7 +321,7 @@ causalmeta <- function(measure, ai, bi, ci, di, n1i, n2i, slab, data = NULL, wei
 
     metafor::addpoly(res, row = 0, mlab="Causal meta-analysis", cex = 0.8)
 
-    if(measure!="SR" && random.effects){
+    if(random.effects){ # measure!="SR" &&
       if(is.element(measure,c("OR","RR")) && log.scale == FALSE){
         metafor::addpoly(x = res_random_effects_beta,
                          ci.lb = res_random_effects_ci.lb,
@@ -395,7 +336,7 @@ causalmeta <- function(measure, ai, bi, ci, di, n1i, n2i, slab, data = NULL, wei
 
   }
 
-  if(random.effects && measure != "SR") {
+  if(random.effects) { # && measure != "SR"
     random_effects_result <- tibble::tibble(estimate = res_random_effects_beta, se = res_random_effects_se)
     return(list(study_results = dplyr::select(results,c(study,thetai,sei)), final_result = result, random_effects_model = random_effects_result))
   }
@@ -405,7 +346,7 @@ causalmeta <- function(measure, ai, bi, ci, di, n1i, n2i, slab, data = NULL, wei
 
 
 
-.validate_variables <- function(names,ai,bi,ci,di,n1i,n2i,has_n,has_t){
+validate_variables <- function(names,ai,bi,ci,di,n1i,n2i,has_n,has_t){
 
   if(has_n){ vector_variables <- list(ai = ai, ci = ci, n1i= n1i, n2i = n2i) }
   else if(has_t){ vector_variables <- list(ai = ai, bi = bi, ci = ci, di = di) }
@@ -421,7 +362,7 @@ causalmeta <- function(measure, ai, bi, ci, di, n1i, n2i, slab, data = NULL, wei
 }
 
 
-.validate_vector_inputs <- function(ai,bi,ci,di,n1i,n2i,has_n,has_t){
+validate_vector_inputs <- function(ai,bi,ci,di,n1i,n2i,has_n,has_t){
 
   if(has_n){ vector_inputs <- list(ai = ai, ci = ci,n1i= n1i, n2i = n2i) }
   else if(has_t){ vector_inputs <- list(ai = ai, bi = bi, ci = ci, di = di) }
