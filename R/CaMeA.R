@@ -296,7 +296,7 @@ camea <- function(measure, ai, bi, ci, di, n1i, n2i, slab, data = NULL, weights 
     measure_name <- if(log.scale) paste("log(",measure,")", sep = "") else measure
     refline <- if(is.element(measure,c("RD")) || log.scale == TRUE) 0 else 1
 
-    par(mar=c(2,2,4,2))
+    par(mar=c(2,2,4,2), xpd = NA)
     if(!missing(slab)){
       metafor::forest(x = results$thetai,
                       ci.lb = results$ci.lb,
