@@ -25,7 +25,7 @@ install.packages("camea")
 The development version can be installed from github
 
 ```{r, eval = FALSE}
-devtools::install_github("cberenfeld/causal_meta")
+devtools::install_github("cberenfeld/camea", build_vignettes = TRUE)
 ```
 
 Another installation possibility is to clone the repo, and then within the r-package folder run
