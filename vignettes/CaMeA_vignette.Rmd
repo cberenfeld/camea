@@ -1,8 +1,8 @@
 ---
-title: "Causal Meta Analysis"
+title: "Causal Meta Analysis for Aggregated Data"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Causal Meta Analysis}
+  %\VignetteIndexEntry{Causal Meta Analysis for Aggregated Data}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -15,20 +15,20 @@ knitr::opts_chunk$set(
 ```
 
 ```{r setup}
-library(causalmeta)
+library(CaMeA)
 ```
 
 ## Description
 
 A package for causal meta-analysis estimation of a binary response and binary treatment using aggregated data, based on Berenfeld et al. (https://arxiv.org/abs/2505.20168). The output is the aggregated estimate and its standard deviation, the package allows for simple and fast computation of different measures such as Risk Difference (RD), Risk Ratio (RR), Odds Ratio (OR) and Survival Ratio (SR).
 
-The package consists of a the function "causalmeta". This function can take the measures Risk Difference, Risk Ratio and log-Risk Ratio, Odds Ratio and log-Odds Ratio, Survival Ratio and log-Survival Ratio.
+The package consists of a the function "camea". This function can take the measures Risk Difference, Risk Ratio and log-Risk Ratio, Odds Ratio and log-Odds Ratio, Survival Ratio and log-Survival Ratio.
 
 The data can be input in the following formats: vectors, data.frame, matrix or sparse matrix.
 
 The output of the function is a list of two elements: the first element is a dataframe that has, for each study, its related estimate and standard error; the second element of the list is the aggregated causal-meta analysis estimate and its standard error.
 
-If `plot = TRUE` the function "causalmeta" prints a forestplot that displays the estimate of interest for each study and the aggregated estimate(s). All estimates are shown with their associated 95%-level CI.
+If `plot = TRUE` the function "camea" prints a forestplot that displays the estimate of interest for each study and the aggregated estimate(s). All estimates are shown with their associated 95%-level CI.
 
 If `random.effects = TRUE`, the output and plot will include both the causal meta-analysis estimate and the random-effects meta-analysis estimate.
 
@@ -39,7 +39,7 @@ If `log.scale = TRUE`, the meta-analysis will be performed on the logarithmic tr
 The latest release of the package can be installed through CRAN (soon):
 
 ```{r, eval = FALSE}
-install.packages("causalmeta")
+install.packages("CaMeA")
 ```
 
 The development version can be installed from github
@@ -57,7 +57,7 @@ Rscript build_package.R
 ## Usage Example
 
 ```{r}
-require(causalmeta)
+require(CaMeA)
 
 # Example 1: With vectors of total numbers and events in treated and control
 
@@ -73,7 +73,7 @@ control_events <- rbinom(n,control_total,0.5)
 measure <- "RD"
 
 # Apply function
-result <- causalmeta(measure = measure, ai = treated_events, n1i = treated_total,
+result <- camea(measure = measure, ai = treated_events, n1i = treated_total,
                     ci = control_events, n2i = control_total)
 
 # Example 2: With contingency tables entries in data.frame format
@@ -94,7 +94,7 @@ dat <- data.frame(treated_events,control_events,treated_negatives,control_negati
 measure <- "OR"
 
 # Apply function
-result <- causalmeta(measure = measure, ai = treated_events, bi = treated_negatives,
+result <- camea(measure = measure, ai = treated_events, bi = treated_negatives,
                     ci = control_events, di = control_negatives, data = dat, log.scale = TRUE)
 
 
@@ -104,11 +104,10 @@ result <- causalmeta(measure = measure, ai = treated_events, bi = treated_negati
 
 If `plot = TRUE` it is possible to print the forestplot of the meta-analysis.
 
-```{r my-forest-plot, fig.width=9, fig.height=7, out.width='100%'}
+```{r my-forest-plot, fig.width=9, fig.height=6, out.width='100%'}
 # apply the same function but print the plot
-par(mar = c(5, 8, 6, 2))
-result <- causalmeta(measure = measure, ai = treated_events, n1i = treated_total,
-                    ci = control_events, n2i = control_total, plot = TRUE)
+result <- camea(measure = measure, ai = treated_events, n1i = treated_total,
+                    ci = control_events, n2i = control_total, log.scale = TRUE, plot = TRUE)
 ```
 
 ## Notation
@@ -116,7 +115,7 @@ result <- causalmeta(measure = measure, ai = treated_events, n1i = treated_total
 We consider a set of $K \in \mathbb{N}$ randomized controlled trials measuring the same binary outcome $Y \in \{0,1\}$ and the same binary treatment $A \in \{0,1\}$. We assume that each study provides a table of the positive and negative outcomes among both the treated and untreated groups, as follows:
 
 ```{r, echo=FALSE}
-if(!require("kableExtra", quietly = TRUE)) install.package("kableExtra")
+if(!require("kableExtra")) install.package("kableExtra")
 library(kableExtra)
 
 df <- data.frame(Cat = c("A=1","A=0"),
@@ -138,7 +137,7 @@ The estimator is asymptotically normal, converging to the following distribution
 
 \begin{equation*}
 
-\sqrt{n} \: ((\hat{\psi}_1,\hat{\psi}_0) - (\psi_1,\psi_0)) \xrightarrow{L} N\biggr{(}0, \begin{bmatrix} 0 & \sigma^2_1 \\ \sigma^2_0 & 0 \end{bmatrix} \biggr{)}
+\sqrt{n} \: ((\hat{\psi}_1,\hat{\psi}_0) - (\psi_1,\psi_0)) \xrightarrow{\mathcal{L}} \mathcal{N}\biggr{(}0, \begin{bmatrix} 0 & \sigma^2_1 \\ \sigma^2_0 & 0 \end{bmatrix} \biggr{)}
 
 \end{equation*}
 
@@ -156,7 +155,7 @@ Then, by applying the delta method, we find that for every first-order continuou
 
 \begin{equation*}
 
-\sqrt{n} \: (\phi(\hat{\psi}_1,\hat{\psi}_0) - \phi(\psi_1,\psi_0)) \xrightarrow{L} N ( 0, \eta^2 )
+\sqrt{n} \: (\phi(\hat{\psi}_1,\hat{\psi}_0) - \phi(\psi_1,\psi_0)) \xrightarrow{\mathcal{L}} \mathcal{N} ( 0, \eta^2 )
 
 \end{equation*}
 
@@ -185,7 +184,7 @@ We also provide estimates and confidence intervals for the Risk Ratio, Odds Rati
 
 <!-- \begin{equation*} -->
 
-<!-- \sqrt{n} \: (\log(\phi(\hat{\psi}_1,\hat{\psi}_0)) - \log(\phi(\psi_1,\psi_0))) \xrightarrow{L} N ( 0, \xi^2 ) -->
+<!-- \sqrt{n} \: (\log(\phi(\hat{\psi}_1,\hat{\psi}_0)) - \log(\phi(\psi_1,\psi_0))) \xrightarrow{\mathcal{L}} \mathcal{N} ( 0, \xi^2 ) -->
 
 <!-- \end{equation*} -->
 
@@ -199,7 +198,7 @@ The random-effects estimate is calculated via the package `metafor` by W. Viecht
 
 It is important to notice that the package `metafor` only provides estimates of the Risk Ratio and Odds Ratio on the logarithmic scale. Our package automatically converts these log-scale estimates back to the natural scale by applying the exponential function to both the point estimate and the bounds of the confidence interval.
 
-The following excerpt from the `causalmeta` function illustrates how we integrate `metafor` for our computation:
+The following excerpt from the `camea` function illustrates how we integrate `metafor` for our computation:
 
 ```{r metafor, eval = FALSE}
 # Create forest plot with single study results
@@ -223,4 +222,3 @@ metafor::addpoly(res, row = 0, mlab="Causal meta-analysis", cex = 0.8)
 Berenfeld, C., Boughdiri, A., Colnet, B., van Amsterdam, W. A. C., Bellet, A., Khellaf, R., Scornet, E., & Josse, J. (2025). Causal Meta-Analysis: Rethinking the Foundations of Evidence-Based Medicine. arXiv:2505.20168.
 
 Viechtbauer, W. (2010). Conducting Meta-Analyses in R with the metafor Package. Journal of Statistical Software, 36(3), 1–48. https://doi.org/10.18637/jss.v036.i03
-
