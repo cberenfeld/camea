@@ -2,13 +2,13 @@
 
 A package for causal meta-analysis estimation of a binary response and binary treatment using aggregated data, based on Berenfeld et al. (https://arxiv.org/abs/2505.20168). The output is the aggregated estimate and its standard deviation, the package allows for simple and fast computation of different measures such as Risk Difference (RD), Risk Ratio (RR), Odds Ratio (OR) and Survival Ratio (SR).
 
-The package consists of the function "camea". This function can take the measures Risk Difference, Risk Ratio and log-Risk Ratio, Odds Ratio and log-Odds Ratio, Survival Ratio and log-Survival Ratio.
+The package consists of the function `camea`. This function can take the measures Risk Difference, Risk Ratio and log-Risk Ratio, Odds Ratio and log-Odds Ratio, Survival Ratio and log-Survival Ratio.
 
 The data can be input in the following formats: vectors, data.frame, matrix or sparse matrix.
 
 The output of the function is a list of two elements: the first element is a dataframe that has, for each study, its related estimate and standard error; the second element of the list is the aggregated causal-meta analysis estimate and its standard error.
 
-If `plot = TRUE` the function "camea" prints a forestplot that displays the estimate of interest for each study and the aggregated estimate(s). All estimates are shown with their associated 95%-level CI.
+If `plot = TRUE` the function `camea` prints a forestplot that displays the estimate of interest for each study and the aggregated estimate(s). All estimates are shown with their associated 95%-level CI.
 
 If `random.effects = TRUE`, the output and plot will include both the causal meta-analysis estimate and the random-effects meta-analysis estimate.
 
@@ -82,7 +82,7 @@ result <- camea(measure = measure, ai = treated_events, bi = treated_negatives,
 
 ## Plot
 
-If "plot = TRUE" it is possible to print the forestplot of the meta-analysis.
+If `plot = TRUE` it is possible to print the forestplot of the meta-analysis.
 
 ```{r my-forest-plot, fig.width=9, fig.height=6, out.width='100%'}
 # apply the same function but print the plot
