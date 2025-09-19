@@ -3,7 +3,7 @@ Type: Package
 Title: Causal Meta-Analysis for Aggregated Data
 Version: 0.1.0
 Authors@R: c(
-    person(given = "Clement", family = "Berenfeld", email = "clement.berenfeld@inria.fr", role = c("aut", "cre"),
+    person(given = "Clement", family = "Berenfeld", email = "clement.berenfeld@inria.fr", role = c("aut", "cre")),
     person(given = "Ahmed", family = "Boughdiri", email = "ahmed.boughdiri@inria.fr", role = "aut"),
     person(given = "Charif", family = "El Gataa", email = "charif.el-gataa@inria.fr", role = "aut"),
     person(given = "Julie", family = "Josse", email = "julie.josse@inria.fr", role = "aut"))
