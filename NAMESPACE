@@ -2,6 +2,7 @@
 
 export(camea)
 importFrom(dplyr,select)
+importFrom(graphics,par)
 importFrom(metafor,addpoly)
 importFrom(metafor,escalc)
 importFrom(metafor,forest)

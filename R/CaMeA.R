@@ -16,7 +16,6 @@
 #' @param plot set to TRUE to print forestplot, default is FALSE
 #' @param log.scale set to TRUE to have log scale of the measure (only for RR, OR and SR), default is FALSE
 #' @param random.effects set to TRUE to have random effects meta-analysis estimate (along with causal meta-analysis estimate) both in the output and in the plot, default is TRUE (possible with all measures except SR)
-#' @param ...
 #'
 #' @details The function can be used by either inputting "ai,bi,ci,di" or "ai,ci,n1i,n2i". Accepted measures are: "RD" = Risk Difference, "RR" = Risk Ratio, "OR" = Odds Ratio, "SR" = Survival Ratio
 #'
@@ -69,11 +68,15 @@
 #' @importFrom metafor rma escalc forest addpoly
 #' @importFrom tibble tibble
 #' @importFrom dplyr select
+#' @importFrom graphics par
 #'
 #' @export
 #'
 #'
-camea <- function(measure, ai, bi, ci, di, n1i, n2i, slab, data = NULL, weights = NULL, plot = FALSE, log.scale = FALSE, random.effects = TRUE, ...){
+#'
+#'
+
+camea <- function(measure, ai, bi, ci, di, n1i, n2i, slab, data = NULL, weights = NULL, plot = FALSE, log.scale = FALSE, random.effects = TRUE){
 
   # Input validation on required parameters (measure, ai, ci)
 
@@ -296,7 +299,7 @@ camea <- function(measure, ai, bi, ci, di, n1i, n2i, slab, data = NULL, weights 
     measure_name <- if(log.scale) paste("log(",measure,")", sep = "") else measure
     refline <- if(is.element(measure,c("RD")) || log.scale == TRUE) 0 else 1
 
-    par(mar=c(2,2,4,2), xpd = NA)
+    graphics::par(mar=c(2,2,4,2), xpd = NA)
     if(!missing(slab)){
       metafor::forest(x = results$thetai,
                       ci.lb = results$ci.lb,
@@ -338,9 +341,9 @@ camea <- function(measure, ai, bi, ci, di, n1i, n2i, slab, data = NULL, weights 
 
   if(random.effects) { # && measure != "SR"
     random_effects_result <- tibble::tibble(estimate = res_random_effects_beta, se = res_random_effects_se)
-    return(list(study_results = dplyr::select(results,c(study,thetai,sei)), final_result = result, random_effects_model = random_effects_result))
+    return(list(study_results = dplyr::select(results,dplyr::all_of(c("study","thetai","sei"))), final_result = result, random_effects_model = random_effects_result))
   }
-  else {return(list(study_results = dplyr::select(results,c(study,thetai,sei)), final_result = result))}
+  else {return(list(study_results = dplyr::select(results,dplyr::all_of(c("study","thetai","sei"))), final_result = result))}
 
 }
 
@@ -404,4 +407,13 @@ validate_vector_inputs <- function(ai,bi,ci,di,n1i,n2i,has_n,has_t){
     return(list(ai_vals = ai, ci_vals = ci, n1i_vals = n1i, n2i_vals = n2i))
   }
 }
+
+if (getRversion() >= "2.15.1") {
+  utils::globalVariables(
+    c("ai_vals", "ci_vals", "n1i_vals", "n2i_vals",
+      "thetai", "sei", "mu_0_k", "mu_1_k", "proba_k",
+      "ci.lb", "ci.ub", "n1i", "n2i", "n.k", "study")
+  )
+}
+
 
