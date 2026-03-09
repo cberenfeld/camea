@@ -237,6 +237,8 @@ camea <- function(measure, ai, bi, ci, di, n1i, n2i, slab, data = NULL, weights 
 
   sigma2_1 <- sum(results$proba_k * results$mu_1_k^2) - EY1^2 + sum((results$n.k * results$mu_1_k * (1 - results$mu_1_k)) / (e_k * n_total))
 
+  gamma <- sum(results$n.k / n_total * results$mu_1_k * results$mu_0_k) - EY0 * EY1
+
   switch(measure,
          "RD" = {
            d_psi_0 <- -1
@@ -255,7 +257,7 @@ camea <- function(measure, ai, bi, ci, di, n1i, n2i, slab, data = NULL, weights 
            d_psi_1 <- - 1 / (1 - EY0)
          })
 
-  variance <- (sigma2_0 * d_psi_0^2 + sigma2_1 * d_psi_1^2) / n_total
+  variance <- (sigma2_0 * d_psi_0^2 + sigma2_1 * d_psi_1^2 + 2*gamma*d_psi_0*d_psi_1) / n_total
 
   if(log.scale){
     variance <- variance / final_result^2 # delta method
@@ -298,7 +300,10 @@ camea <- function(measure, ai, bi, ci, di, n1i, n2i, slab, data = NULL, weights 
 
     measure_name <- if(log.scale) paste("log(",measure,")", sep = "") else measure
     refline <- if(is.element(measure,c("RD")) || log.scale == TRUE) 0 else 1
-
+  
+    oldpar <- par(no.readonly = TRUE) # code line i
+    on.exit(par(oldpar))
+    
     graphics::par(mar=c(2,2,4,2), xpd = NA)
     if(!missing(slab)){
       metafor::forest(x = results$thetai,

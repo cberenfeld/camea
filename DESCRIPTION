@@ -1,15 +1,15 @@
 Package: CaMeA
 Type: Package
 Title: Causal Meta-Analysis for Aggregated Data
-Version: 0.1.0
+Version: 0.1.1
 Authors@R: c(
         person(given = "Clement", family = "Berenfeld", email = "clement.berenfeld@inria.fr", role = c("ctb","cre")),
         person(given = "Ahmed", family = "Boughdiri", email = "ahmed.boughdiri@inria.fr", role = "ctb"),
         person(given = "Charif", family = "El Gataa", email = "charif.el-gataa@inria.fr", role = "aut"),
         person(given = "Julie", family = "Josse", email = "julie.josse@inria.fr", role = "ctb"))
 Maintainer: Clement Berenfeld <clement.berenfeld@inria.fr>
-Description: Performs causal meta-analysis for binary treatment and binary outcomes.
-License: MIT + file LICENSE
+Description: A tool for causal meta-analysis. This package implements the aggregation formulas and inference methods proposed in Berenfeld et al. (2025) <doi:10.48550/arXiv.2505.20168>. Users can input aggregated data across multiple studies and compute causally meaningful aggregated effects of their choice (risk difference, risk ratio, odds ratio, etc) under user-specified population weighting. The built-in function camea() allows to obtain precise variance estimates for these effects and to compare the latter to a classical meta-analysis aggregate, the random effect model, as implemented in the 'metafor' package <https://CRAN.R-project.org/package=metafor>.  
+License: AGPL (>= 3)
 Encoding: UTF-8
 LazyData: false
 RoxygenNote: 7.3.2
