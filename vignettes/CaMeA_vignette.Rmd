@@ -59,6 +59,8 @@ Rscript build_package.R
 ```{r}
 require(CaMeA)
 
+set.seed(42)
+
 # Example 1: With vectors of total numbers and events in treated and control
 
 # Generate data
@@ -83,8 +85,10 @@ n <- 10
 
 treated_total <- sample.int(1000, n)
 control_total <- sample.int(1000, n)
-treated_events <- rbinom(n,treated_total,0.5)
-control_events <- rbinom(n,control_total,0.5)
+treated_proba = sample(c(rep(0.3, n/2), rep(0.7, n/2)))
+treated_events <- rbinom(n,treated_total,treated_proba)
+control_proba <- c(rep(0.7, n/2), rep(0.3, n/2))
+control_events <- rbinom(n,control_total,control_proba)
 treated_negatives <- treated_total - treated_events
 control_negatives <- control_total - control_events
 
@@ -119,40 +123,45 @@ if (requireNamespace("kableExtra", quietly = TRUE)) {
   library(kableExtra)
 }
 
-df <- data.frame(Cat = c("A=1","A=0"),
-                 "Y=1" = c("$n_{11}(k)$","$n_{10}(k)$"),
-                 "Y=0" = c("$n_{01}(k)$","$n_{00}(k)$"))
-kable(df, col.names = c("","Y=1","Y=0"), escape = F) %>% kable_styling(latex_options = "hold_position")
+df <- data.frame(Cat = c("$A=1$","$A=0$"),
+                 "Y=1" = c("$n_k(1,1)$","$n_k(0,1)$"),
+                 "Y=0" = c("$n_{k}(1,0)$","$n_{k}(0,0)$"))
+kable(df, col.names = c("","$Y=1$","$Y=0$"), escape = F) %>% kable_styling(latex_options = "hold_position")
 
 ```
 
-where $n_{ay}(k)$ denotes the number of individuals in the study $k \in [K]$ with treatment status $A = a$ and observed outcome $Y=y$.
+where $n_{k}(a,y)$ denotes the number of individuals in the study $k \in [K]$ with treatment status $A = a$ and observed outcome $Y=y$. We define $n_k(a) = n_k(a,1)+n_k(a,0)$ and $n_k = n_k(1)+n_k(0)$.
 
 Let $Y(a)$ be the counterfactual outcome under $A = a$ and $H \in [K]$ be the study variable.
 
 ## Computation of confidence intervals
 
-Let $\hat{\psi}_a (k) = n_{a1}(k) / n_a(k)$ be the natural estimator of $\psi_a (k) = \mathbb{E}[Y(a)|H=k]$ with $a \in \{0,1\}$. Let $\hat{\psi}_a = \sum_{k=1}^K \hat{\pi}_k \hat{\psi}_a(k)$ the estimator of $\psi_a = \mathbb{E}[Y(a)]$ where $\pi_k = \mathbb{P}(H = k)$ and $\hat{\pi}_k = n_a(k)/n_k$.
+Let $\hat{\psi}_a (k) = n_{k}(a,1) / n_k(a)$ be the natural estimator of $\psi_k (a) = \mathbb{E}[Y(a)|H=k]$ with $a \in \{0,1\}$. Let $\hat{\psi}(a) = \sum_{k=1}^K \hat{\pi}_k \hat{\psi}_k(a)$ the estimator of $\psi(a) = \mathbb{E}[Y(a)]$ where $\pi_k = \mathbb{P}(H = k)$ and $\hat{\pi}_k = n_k(a)/n_k$.
 
 The estimator is asymptotically normal, converging to the following distribution:
 
 \begin{equation*}
 
-\sqrt{n} \: ((\hat{\psi}_1,\hat{\psi}_0) - (\psi_1,\psi_0)) \xrightarrow{L} N\biggr{(}0, \begin{bmatrix} 0 & \sigma^2_1 \\ \sigma^2_0 & 0 \end{bmatrix} \biggr{)}
+\sqrt{n} \: ((\hat{\psi}(1),\hat{\psi}(0)) - (\psi(1),\psi(0))) \xrightarrow{L} N\biggr{(}0, \begin{bmatrix} \sigma^2(1) & \gamma \\ \gamma & \sigma^2(0) \end{bmatrix} \biggr{)}
 
 \end{equation*}
 
-where the asymptotic variances are given by:
+where the asymptotic covariances are given by:
 
 \begin{equation*}
 
-\sigma^2_a = \sum_{k=1}^K \pi_k \frac{\psi_a (k) (1 - \psi_a (k))}{e^a(k) (1 - e(k))^{1-a}} + \sum_{k=1}^K \pi_k \psi_a(k)^2 - \psi_a^2
-
+\sigma^2(a) = \sum_{k=1}^K \pi_k \frac{\psi_k (a) (1 - \psi_k (a))}{e_k(a)} + \sum_{k=1}^K \pi_k \psi_k(a)^2 - \psi(a)^2 
 \end{equation*}
 
-with $e(k) = \mathbb{P}(A = 1 | H = k)$ and $a \in \{ 0,1 \}$.
+and
 
-Then, by applying the delta method, we find that for every first-order continuously differentiable contrast $\phi \: : \: (\psi_1,\psi_0) \mapsto \phi(\psi_1,\psi_0)$ we have:
+\begin{equation*}
+\gamma = \sum_{k=1}^K \pi_k \psi_k(1)\psi_k(0) - \psi(1)\psi(0)
+\end{equation*}
+
+with $e_k(a) = \mathbb{P}(A = a | H = k)$.
+
+Then, by applying the delta method, we find that for every contrast $\phi \: : \: (x,y) \mapsto \phi(x,y)$ locally differentiable around $(\psi(1),\psi(0))$, we have:
 
 \begin{equation*}
 

@@ -1,9 +1,9 @@
 Package: CaMeA
 Type: Package
 Title: Causal Meta-Analysis for Aggregated Data
-Version: 0.1.1
+Version: 0.1.2
 Authors@R: c(
-        person(given = "Clement", family = "Berenfeld", email = "clement.berenfeld@inria.fr", role = c("ctb","cre")),
+        person(given = "Clement", family = "Berenfeld", email = "clement.berenfeld@inria.fr", role = c("aut","cre")),
         person(given = "Ahmed", family = "Boughdiri", email = "ahmed.boughdiri@inria.fr", role = "ctb"),
         person(given = "Charif", family = "El Gataa", email = "charif.el-gataa@inria.fr", role = "aut"),
         person(given = "Julie", family = "Josse", email = "julie.josse@inria.fr", role = "ctb"))
