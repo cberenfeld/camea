@@ -718,7 +718,7 @@ outcome under <span class="math inline">\(A = a\)</span> and <span class="math i
 </div>
 <div id="computation-of-confidence-intervals" class="section level2">
 <h2>Computation of confidence intervals</h2>
-<p>Let <span class="math inline">\(\hat{\psi}_a (k) = n_{k}(a,1) /
+<p>Let <span class="math inline">\(\hat{\psi}_k (a) = n_{k}(a,1) /
 n_k(a)\)</span> be the natural estimator of <span class="math inline">\(\psi_k (a) = \mathbb{E}[Y(a)|H=k]\)</span> with
 <span class="math inline">\(a \in \{0,1\}\)</span>. Let <span class="math inline">\(\hat{\psi}(a) = \sum_{k=1}^K \hat{\pi}_k
 \hat{\psi}_k(a)\)</span> the estimator of <span class="math inline">\(\psi(a) = \mathbb{E}[Y(a)]\)</span> where <span class="math inline">\(\pi_k = \mathbb{P}(H = k)\)</span> and <span class="math inline">\(\hat{\pi}_k = n_k(a)/n_k\)</span>.</p>
@@ -742,49 +742,48 @@ distribution:</p>
 \gamma = \sum_{k=1}^K \pi_k \psi_k(1)\psi_k(0) - \psi(1)\psi(0)
 \end{equation*}\]</span></p>
 <p>with <span class="math inline">\(e_k(a) = \mathbb{P}(A = a | H =
-k)\)</span> and <span class="math inline">\(a \in \{ 0,1
-\}\)</span>.</p>
-<p>Then, by applying the delta method, we find that for every
-first-order continuously differentiable contrast <span class="math inline">\(\phi \: : \: (\psi_1,\psi_0) \mapsto
-\phi(\psi_1,\psi_0)\)</span> we have:</p>
+k)\)</span>.</p>
+<p>Then, by applying the delta method, we find that for every contrast
+<span class="math inline">\(\phi \: : \: (x,y) \mapsto
+\phi(x,y)\)</span> locally differentiable around <span class="math inline">\((\psi(1),\psi(0))\)</span>, we have:</p>
 <p><span class="math display">\[\begin{equation*}
 
 \sqrt{n} \: (\phi(\hat{\psi}_1,\hat{\psi}_0) - \phi(\psi_1,\psi_0))
-\xrightarrow{L} N ( 0, \eta^2 )
+\xrightarrow{L} N ( 0, \sigma^2 )
 
 \end{equation*}\]</span></p>
 <p>where</p>
 <p><span class="math display">\[\begin{equation*}
-\eta^2 = \sigma_1^2 \: \partial_1 \phi(\psi_1,\psi_0)^2 + \sigma_0^2 \:
-\partial_0 \phi(\psi_1,\psi_0)^2
+\sigma^2 = \sigma^2(1) \: \partial_1 \phi(\psi(1),\psi(0))^2 +
+\sigma^2(0) \: \partial_0 \phi(\psi(1),\psi(0))^2 + 2 \gamma \:
+\partial_1 \phi(\psi(1),\psi(0)) \: \partial_0 \phi(\psi(1),\psi(0))
 \end{equation*}\]</span></p>
 <p>and <span class="math inline">\(\partial_a
-\phi(\psi_1,\psi_0)\)</span> denotes the partial derivative of <span class="math inline">\(\phi\)</span> with respect to <span class="math inline">\(\psi_a\)</span>.</p>
-<p>We will use the above approximation to estimate the variance of the
+\phi(\psi(1),\psi(0))\)</span> denotes the partial derivative of <span class="math inline">\(\phi\)</span> with respect to <span class="math inline">\(\psi(a)\)</span>.</p>
+<p>We will use the above closed form to estimate the variance of the
 measures:</p>
 <ul>
-<li>Risk Difference: <span class="math inline">\(\phi(\psi_1,\psi_0) =
-\psi_1 - \psi_0\)</span></li>
-<li>Risk Ratio: <span class="math inline">\(\phi(\psi_1,\psi_0) =
-\frac{\psi_1}{\psi_0}\)</span></li>
-<li>Odds Ratio: <span class="math inline">\(\phi(\psi_1,\psi_0) =
-\frac{\psi_1}{1-\psi_1} \frac{1-\psi_0}{\psi_0}\)</span></li>
-<li>Survival Ratio: <span class="math inline">\(\phi(\psi_1,\psi_0) =
-\frac{1- \psi_1}{1 - \psi_0}\)</span>.</li>
+<li>Risk difference: <span class="math inline">\(\phi(\psi(1),\psi(0)) =
+\psi(1) - \psi(0)\)</span>;</li>
+<li>Risk ratio: <span class="math inline">\(\phi(\psi(1),\psi(0)) =
+\frac{\psi(1)}{\psi(0)}\)</span>;</li>
+<li>Odds ratio: <span class="math inline">\(\phi(\psi(1),\psi(0)) =
+\frac{\psi(1)}{1-\psi(1)} \frac{1-\psi(0)}{\psi(0)}\)</span>;</li>
+<li>Survival ratio: <span class="math inline">\(\phi(\psi(1),\psi(0)) =
+\frac{1- \psi(1)}{1 - \psi(0)}\)</span>.</li>
 </ul>
-<p>We also provide estimates and confidence intervals for the Risk
-Ratio, Odds Ratio, and Survival Ratio on the logarithmic scale. In that
-case, the required partial derivatives for <span class="math inline">\(a
-\in {0,1}\)</span> are given by:</p>
+<p>We also provide estimates and confidence intervals for the relative
+measures on the logarithmic scale. In that case, the partial derivatives
+are simply given by:</p>
 <p><span class="math display">\[\begin{equation*}
-\partial_a \log \phi(\psi_1,\psi_0) = \frac{1}{\phi(\psi_1,\psi_0)}
-\partial_a \phi(\psi_1,\psi_0)
+\partial_a \log \phi(\psi(1),\psi(0)) = \frac{1}{\phi(\psi(1),\psi(0))}
+\partial_a \phi(\psi(1),\psi(0)).
 \end{equation*}\]</span></p>
 </div>
 <div id="use-of-metafor-package" class="section level2">
 <h2>Use of metafor package</h2>
-<p>If the selected effect measure is Risk Difference (RD), Risk Ratio
-(RR) or Odds Ratio (OR) and the option
+<p>If the selected effect measure is risk difference (RD), risk ratio
+(RR) or odds ratio (OR) and the option
 <code>random.effects = TRUE</code> is set, the output and the forest
 plot will display two summary estimates: the primary causal
 meta-analysis estimate and the conventional random-effects estimate.</p>
